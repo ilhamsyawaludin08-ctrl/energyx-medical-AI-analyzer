@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  analyzer-backend-prod:
+    build: .
+    container_name: analyzer_backend_prod
+    restart: always
+    environment:
+      PORT: 4001
+    ports:
+      - "4001:4001"
+    command: npm run dev
+    volumes:
+      - .:/app
+      - /app/node_modules

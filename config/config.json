@@ -1,0 +1,26 @@
+{
+  "development": {
+    "username": "DB_USER",
+    "password": "DB_PASSWORD",
+    "database": "DB_NAME",
+    "host": "DB_HOST",
+    "dialect": "mysql",
+    "port": "DB_PORT"
+  },
+  "test": {
+    "username": "DB_USER",
+    "password": "DB_PASSWORD",
+    "database": "DB_NAME_TEST",
+    "host": "DB_HOST",
+    "dialect": "mysql",
+    "port": 3306
+  },
+  "production": {
+    "username": "DB_USER",
+    "password": "DB_PASSWORD",
+    "database": "DB_NAME",
+    "host": "DB_HOST",
+    "dialect": "mysql",
+    "port": 3306
+  }
+}

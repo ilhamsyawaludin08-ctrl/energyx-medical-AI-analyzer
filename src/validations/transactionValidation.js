@@ -1,0 +1,66 @@
+const Joi = require('joi');
+
+// Skema untuk document checklist yang lebih fleksibel
+const documentChecklistSchema = Joi.object({
+  has_medical_resume: Joi.boolean().default(false).messages({
+    'boolean.base': 'has_medical_resume harus berupa boolean'
+  }),
+  has_lab_results: Joi.boolean().default(false).messages({
+    'boolean.base': 'has_lab_results harus berupa boolean'
+  }),
+  has_imaging: Joi.boolean().default(false).messages({
+    'boolean.base': 'has_imaging harus berupa boolean'
+  }),
+  has_specialist_consultation: Joi.boolean().default(false).messages({
+    'boolean.base': 'has_specialist_consultation harus berupa boolean'
+  }),
+  has_iv_therapy_proof: Joi.boolean().default(false).messages({
+    'boolean.base': 'has_iv_therapy_proof harus berupa boolean'
+  }),
+  has_daily_care_notes: Joi.boolean().default(false).messages({
+    'boolean.base': 'has_daily_care_notes harus berupa boolean'
+  }),
+  has_min_5day_inpatient: Joi.boolean().default(false).messages({
+    'boolean.base': 'has_min_5day_inpatient harus berupa boolean'
+  }),
+  severity_level: Joi.alternatives().try(
+    Joi.string().valid('I', 'II', 'III'),
+    Joi.number().valid(1, 2, 3)
+  ).required().messages({
+    'alternatives.match': 'severity_level harus berupa string (I, II, III) atau angka (1, 2, 3)',
+    'any.required': 'severity_level diperlukan'
+  })
+}).unknown(false);
+
+// Skema untuk transaksi BPJS
+const createTransactionSchema = Joi.object({
+  patient_name: Joi.string().max(100).required().messages({
+    'string.empty': 'Nama pasien diperlukan',
+    'string.max': 'Nama pasien tidak boleh melebihi 100 karakter',
+    'string.base': 'Nama pasien harus berupa string',
+  }),
+  primary_diagnosis: Joi.number().integer().positive().required().messages({
+    'number.base': 'Primary diagnosis harus berupa angka',
+    'number.integer': 'Primary diagnosis harus berupa bilangan bulat',
+    'number.positive': 'Primary diagnosis harus bernilai positif',
+    'any.required': 'Primary diagnosis diperlukan'
+  }),
+  secondary_diagnosis: Joi.array().items(
+    Joi.number().integer().positive()
+  ).messages({
+    'array.base': 'Secondary diagnosis harus berupa array',
+    'number.base': 'ID secondary diagnosis harus berupa angka',
+    'number.integer': 'ID secondary diagnosis harus berupa bilangan bulat',
+    'number.positive': 'ID secondary diagnosis harus bernilai positif'
+  }),
+  document_checklist: documentChecklistSchema.required().messages({
+    'any.required': 'Document checklist diperlukan'
+  }),
+  notes: Joi.string().allow('', null).messages({
+    'string.base': 'Catatan harus berupa string',
+  }),
+});
+
+module.exports = {
+  createTransactionSchema,
+};
