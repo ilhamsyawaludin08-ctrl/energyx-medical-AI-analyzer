@@ -630,7 +630,8 @@ const getRecommendationV1 = async (inputData) => {
     }
 
     try {
-      const jsonResponse = JSON.parse(reply);
+      const cleaned = extractJsonFromContent(reply);
+      const jsonResponse = JSON.parse(cleaned);
       
       const diagnosisPrimerCodes = jsonResponse.ai_analysis_recommendations.diagnosis_primer.map(item => item.kode);
       const diagnosisSekunderCodes = jsonResponse.ai_analysis_recommendations.diagnosis_sekunder.map(item => item.kode);
@@ -687,24 +688,9 @@ const getRecommendationV1 = async (inputData) => {
 
       return finalResponse;
     } catch (jsonError) {
-      throw new Error(`Response format tidak valid: ${{
-        ai_analysis_recommendations: {
-          error: "Response format tidak valid",
-          raw_response: reply,
-          diagnosis_primer: [],
-          diagnosis_sekunder: [],
-          tindakan_medis: [],
-          severity_level: 1,
-          severity_justifikasi: "Tidak dapat menentukan severity",
-          kode_inacbg_utama: "V",
-          justifikasi_inacbg: "Tidak dapat menentukan kategori",
-          resume_medis: false,
-          hasil_laboratorium: false,
-          hasil_radiologi: false,
-          lembar_observasi: false,
-          jenis_pelayanan: "Tidak diketahui"
-        }
-      }}`);
+      console.error("JSON Parse Error:", jsonError);
+      console.error("Raw AI Reply content:", reply);
+      throw new Error(`Response format tidak valid: ${jsonError.message}. Raw reply: ${reply}`);
     }
 
   } catch (error) {
