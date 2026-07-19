@@ -15,7 +15,7 @@ export default function Settings() {
     
     // AI config display
     const [aiModel, setAiModel] = useState("gpt-4o-mini");
-    const [openrouterStatus, setOpenrouterStatus] = useState("Connected");
+    const [litellmStatus, setLitellmStatus] = useState("Connected");
 
     useEffect(() => {
         const userStr = localStorage.getItem("user");
@@ -225,9 +225,9 @@ export default function Settings() {
                                 </select>
                             </div>
                             <div className="d-flex justify-content-between align-items-center">
-                                <span className="small text-muted">Status Koneksi OpenRouter:</span>
+                                <span className="small text-muted">Status Koneksi LiteLLM:</span>
                                 <span className="badge bg-success-subtle text-success border border-success p-2">
-                                    <i className="bi bi-cloud-check-fill me-1"></i> {openrouterStatus}
+                                    <i className="bi bi-cloud-check-fill me-1"></i> {litellmStatus}
                                 </span>
                             </div>
                         </div>

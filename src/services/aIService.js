@@ -5,14 +5,9 @@ const { findInacbgByCodeDiagnosa, findInacbgByTindakanDiagnosa } = require('../r
 const { getMrconsoStr, updateStrMRConso } = require('../repositories/mrconsoRepository')
 const handleError = require('../monitor/errorHandler');
 
-// const openrouter = new OpenAI({
-//   apiKey: process.env.OPENROUTER_API_KEY,
-//   baseURL: process.env.OPENROUTER_API_BASE_URL
-// });
-
-const openrouter = new OpenAI({
-    apiKey: process.env.OPENROUTER_API_KEY,
-    baseURL: process.env.OPENROUTER_API_BASE_URL
+const aiClient = new OpenAI({
+    apiKey: process.env.AI_API_KEY,
+    baseURL: process.env.AI_BASE_URL
 });
 
 const getRecommendation = async (inputan) => {
@@ -271,7 +266,7 @@ const getRecommendation = async (inputan) => {
       { role: "user", content: contextUser }
     ];
 
-    const completion = await openrouter.chat.completions.create({
+    const completion = await aiClient.chat.completions.create({
       model: "gpt-4o-mini",
       messages,
       temperature: 0,
@@ -619,7 +614,7 @@ const getRecommendationV1 = async (inputData) => {
       { role: "user", content: contextUser }
     ];
 
-    const completion = await openrouter.chat.completions.create({
+    const completion = await aiClient.chat.completions.create({
       model: "gpt-4o-mini",
       messages,
       temperature: 0,
@@ -775,7 +770,7 @@ const updateMRConso = async () => {
       { role: "user", content: contextUser }
     ];
 
-    const completion = await openrouter.chat.completions.create({
+    const completion = await aiClient.chat.completions.create({
       model: 'gpt-4o-mini',
       messages,
       temperature: 0,
