@@ -7,6 +7,7 @@ import DiagnosisValidation from "./pages/DiagnosisValidation";
 import Transactions from "./pages/Transactions";
 import Encounters from "./pages/Encounters";
 import Settings from "./pages/Settings";
+import Users from "./pages/Users";
 import NotFound from "./pages/NotFound";
 
 import MainLayout from "./layouts/MainLayout";
@@ -69,6 +70,15 @@ function App() {
                 element={
                     <MainLayout>
                         <Settings />
+                    </MainLayout>
+                }
+            />
+
+            <Route
+                path="/users"
+                element={
+                    <MainLayout>
+                        <Users />
                     </MainLayout>
                 }
             />

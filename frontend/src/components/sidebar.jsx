@@ -53,6 +53,11 @@ export default function Sidebar() {
             path: "/transactions",
         },
         {
+            name: "Users",
+            icon: "bi-people",
+            path: "/users",
+        },
+        {
             name: "Settings",
             icon: "bi-gear",
             path: "/settings",
