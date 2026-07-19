@@ -63,6 +63,13 @@ exports.login = async (req, res) => {
         const valid = bcrypt.compareSync(password, user.password);
         if (!valid) return res.status(401).json({ message: 'Password salah' });
 
+
+        console.log("=== LOGIN DEBUG ===");
+        console.log("User:", user);
+        console.log("Department:", user.department);
+        console.log("Hospital:", user.hospital);
+        console.log("JWT_SECRET:", JWT_SECRET);
+        console.log("JWT_EXPIRES_IN:", JWT_EXPIRES_IN);
         const token = jwt.sign(
             { id: user.id, username: user.username, role: user.department?.name },
             JWT_SECRET,

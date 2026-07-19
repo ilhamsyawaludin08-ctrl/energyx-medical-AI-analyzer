@@ -1,107 +1,82 @@
-import { useState } from "react";
-import api from "./api/api";
+import { Routes, Route } from "react-router-dom";
 
-import Loading from "./components/Loading";
-import ResultCard from "./components/ResultCard";
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import NewAnalysis from "./pages/NewAnalysis";
+import DiagnosisValidation from "./pages/DiagnosisValidation";
+import Transactions from "./pages/Transactions";
+import Encounters from "./pages/Encounters";
+import Settings from "./pages/Settings";
+import NotFound from "./pages/NotFound";
+
+import MainLayout from "./layouts/MainLayout";
 
 function App() {
-  const [condition, setCondition] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState(null);
-  const [error, setError] = useState("");
+    return (
+        <Routes>
 
-  const analyze = async () => {
-    if (!condition.trim()) {
-      alert("Masukkan data pasien terlebih dahulu.");
-      return;
-    }
+            {/* Login tanpa Sidebar */}
+            <Route path="/" element={<Login />} />
 
-    try {
-      setLoading(true);
-      setResult(null);
-      setError("");
+            {/* Semua halaman memakai Layout */}
+            <Route
+                path="/dashboard"
+                element={
+                    <MainLayout>
+                        <Dashboard />
+                    </MainLayout>
+                }
+            />
 
-      const res = await api.post("/recomendation", {
-        condition,
-      });
+            <Route
+                path="/analysis"
+                element={
+                    <MainLayout>
+                        <NewAnalysis />
+                    </MainLayout>
+                }
+            />
 
-      console.log(res.data);
+            <Route
+                path="/diagnosis"
+                element={
+                    <MainLayout>
+                        <DiagnosisValidation />
+                    </MainLayout>
+                }
+            />
 
-      setResult(res.data.data);
-    } catch (err) {
-      console.error(err);
+            <Route
+                path="/transactions"
+                element={
+                    <MainLayout>
+                        <Transactions />
+                    </MainLayout>
+                }
+            />
 
-      setError(
-        err.response?.data?.message ||
-          "Terjadi kesalahan pada server."
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
+            <Route
+                path="/encounters"
+                element={
+                    <MainLayout>
+                        <Encounters />
+                    </MainLayout>
+                }
+            />
 
-  return (
-    <div className="container py-5">
+            <Route
+                path="/settings"
+                element={
+                    <MainLayout>
+                        <Settings />
+                    </MainLayout>
+                }
+            />
 
-      <div className="row justify-content-center">
+            <Route path="*" element={<NotFound />} />
 
-        <div className="col-lg-10">
-
-          <div className="card shadow-lg">
-
-            <div className="card-body p-4">
-
-              <h2 className="text-center mb-3">
-                🩺 EnergyX Medical AI Analyzer
-              </h2>
-
-              <p className="text-center text-muted">
-                Masukkan data pasien untuk mendapatkan rekomendasi AI.
-              </p>
-
-              <textarea
-                className="form-control"
-                rows={12}
-                value={condition}
-                onChange={(e) => setCondition(e.target.value)}
-                placeholder={`ID Pasien: 001
-Nama: Ilham
-Jenis Pelayanan: Rawat Jalan
-Creator: Admin
-
-Subjective:
-Pasien mengalami demam tinggi, batuk, dan sesak napas selama 3 hari`}
-              />
-
-              <div className="d-grid mt-4">
-                <button
-                  className="btn btn-primary btn-lg"
-                  onClick={analyze}
-                  disabled={loading}
-                >
-                  🔍 Analisis AI
-                </button>
-              </div>
-
-            </div>
-          </div>
-
-          {loading && <Loading />}
-
-          {error && (
-            <div className="alert alert-danger mt-4">
-              {error}
-            </div>
-          )}
-
-          {result && <ResultCard result={result} />}
-
-        </div>
-
-      </div>
-
-    </div>
-  );
+        </Routes>
+    );
 }
 
 export default App;

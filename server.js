@@ -1,4 +1,6 @@
 require('dotenv').config();
+console.log("JWT_SECRET =", process.env.JWT_SECRET);
+console.log("JWT_EXPIRES_IN =", process.env.JWT_EXPIRES_IN);
 const express = require('express');
 const { sequelize } = require('./src/config/database');
 const Routes = require('./src/routes');
