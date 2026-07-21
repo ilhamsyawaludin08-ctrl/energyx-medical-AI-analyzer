@@ -39,19 +39,15 @@ const createTransactionSchema = Joi.object({
     'string.max': 'Nama pasien tidak boleh melebihi 100 karakter',
     'string.base': 'Nama pasien harus berupa string',
   }),
-  primary_diagnosis: Joi.number().integer().positive().required().messages({
-    'number.base': 'Primary diagnosis harus berupa angka',
-    'number.integer': 'Primary diagnosis harus berupa bilangan bulat',
-    'number.positive': 'Primary diagnosis harus bernilai positif',
+  primary_diagnosis: Joi.string().required().messages({
+    'string.base': 'Primary diagnosis harus berupa string',
     'any.required': 'Primary diagnosis diperlukan'
   }),
   secondary_diagnosis: Joi.array().items(
-    Joi.number().integer().positive()
+    Joi.string()
   ).messages({
     'array.base': 'Secondary diagnosis harus berupa array',
-    'number.base': 'ID secondary diagnosis harus berupa angka',
-    'number.integer': 'ID secondary diagnosis harus berupa bilangan bulat',
-    'number.positive': 'ID secondary diagnosis harus bernilai positif'
+    'string.base': 'ID secondary diagnosis harus berupa string'
   }),
   document_checklist: documentChecklistSchema.required().messages({
     'any.required': 'Document checklist diperlukan'
@@ -59,6 +55,8 @@ const createTransactionSchema = Joi.object({
   notes: Joi.string().allow('', null).messages({
     'string.base': 'Catatan harus berupa string',
   }),
+  encounter_number: Joi.string().allow('', null),
+  treatment: Joi.array().items(Joi.object().unknown(true)).allow(null)
 });
 
 module.exports = {

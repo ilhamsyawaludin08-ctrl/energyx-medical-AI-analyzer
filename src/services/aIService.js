@@ -267,7 +267,7 @@ const getRecommendation = async (inputan) => {
     ];
 
     const completion = await aiClient.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: process.env.MODEL_AI || "gpt-4o-mini",
       messages,
       temperature: 0,
       top_p: 1,
@@ -321,7 +321,7 @@ const getRecommendation = async (inputan) => {
       stack: error.stack
     });
 
-    throw `Error dalam proses rekomendasi AI: ${error.message}`;
+    throw new Error(`Error dalam proses rekomendasi AI: ${error.message || error}`);
   }
 };
 
@@ -615,7 +615,7 @@ const getRecommendationV1 = async (inputData) => {
     ];
 
     const completion = await aiClient.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: process.env.MODEL_AI || "gpt-4o-mini",
       messages,
       temperature: 0,
       top_p: 1,
@@ -700,7 +700,7 @@ const getRecommendationV1 = async (inputData) => {
       stack: error.stack
     });
 
-    throw `Error dalam proses rekomendasi AI: ${error.message}`;
+    throw new Error(`Error dalam proses rekomendasi AI: ${error.message || error}`);
   }  
 }
 
@@ -757,7 +757,7 @@ const updateMRConso = async () => {
     ];
 
     const completion = await aiClient.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: process.env.MODEL_AI || 'gpt-4o-mini',
       messages,
       temperature: 0,
       top_p: 1,
@@ -792,7 +792,7 @@ const updateMRConso = async () => {
       stack: error.stack
     });
 
-    throw `Error dalam proses rekomendasi AI: ${error.message}`;
+    throw new Error(`Error dalam proses rekomendasi AI: ${error.message || error}`);
   }  
 }
 

@@ -6,17 +6,18 @@ export default function DiagnosisValidation() {
     const location = useLocation();
     const navigate = useNavigate();
 
-    // Core state
-    const [loading, setLoading] = useState(false);
-    const [encounters, setEncounters] = useState([]);
-    const [selectedEncounterNum, setSelectedEncounterNum] = useState("");
+    // Patient Context
     const [patientInfo, setPatientInfo] = useState(null);
     const [aiRecommendations, setAiRecommendations] = useState(null);
+    const [encounters, setEncounters] = useState([]);
 
-    // Doctor decisions state
-    const [selectedPrimaryDiagnosis, setSelectedPrimaryDiagnosis] = useState(null); // { id, disease_name, icd10_code, claim }
-    const [selectedSecondaryDiagnoses, setSelectedSecondaryDiagnoses] = useState([]); // array of { id, disease_name, icd10_code, claim }
-    const [selectedTreatments, setSelectedTreatments] = useState([]); // array of action objects
+    // Validation State
+    const [selectedPrimaryDiagnosis, setSelectedPrimaryDiagnosis] = useState(null);
+    const [selectedSecondaryDiagnoses, setSelectedSecondaryDiagnoses] = useState([]);
+    const [selectedTreatments, setSelectedTreatments] = useState([]);
+    const [severityLevel, setSeverityLevel] = useState(1);
+    
+    // Document Requirements Checklist
     const [completedDocs, setCompletedDocs] = useState({
         has_medical_resume: false,
         has_lab_results: false,
@@ -26,35 +27,34 @@ export default function DiagnosisValidation() {
         has_daily_care_notes: false,
         has_min_5day_inpatient: false,
     });
-    const [severityLevel, setSeverityLevel] = useState(1);
-    const [notes, setNotes] = useState("");
 
-    // Autocomplete Master Diagnosis Search state
+    const [notes, setNotes] = useState("");
+    const [loading, setLoading] = useState(false);
+
+    // Search Autocomplete State
     const [searchQuery, setSearchQuery] = useState("");
     const [searchResults, setSearchResults] = useState([]);
+    const [searchTargetType, setSearchTargetType] = useState("primary");
     const [showResultsDropdown, setShowResultsDropdown] = useState(false);
-    const [searchTargetType, setSearchTargetType] = useState("primary"); // "primary" or "secondary"
     const dropdownRef = useRef(null);
 
-    // Load initial data
+    // Close dropdown on outside click
     useEffect(() => {
-        // Close dropdown when clicking outside
-        function handleClickOutside(event) {
+        const handleClickOutside = (event) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
                 setShowResultsDropdown(false);
             }
-        }
+        };
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    // Check if redirected from New Analysis
+    // Initialize from location state (redirect from NewAnalysis) or load recent encounters
     useEffect(() => {
-        if (location.state && location.state.result && location.state.patientData) {
-            const result = location.state.result;
+        if (location.state && location.state.analysisResult && location.state.patientData) {
+            const aiData = location.state.analysisResult.data;
             const patientData = location.state.patientData;
-            
-            // Format state from redirect
+
             setPatientInfo({
                 patient_id: patientData.patient_id,
                 patient_name: patientData.patient_name,
@@ -62,19 +62,17 @@ export default function DiagnosisValidation() {
                 gender: patientData.gender,
                 weight: patientData.weight,
                 service_type: patientData.service_type,
-                encounter_number: patientData.encounter_number,
-                unit: patientData.unit,
+                encounter_number: aiData.encounter_number || patientData.encounter_number || `ENC-${Date.now()}`,
+                unit: "Poli Umum",
                 subjective: patientData.subjective,
                 objective: patientData.objective,
                 assessment: patientData.assessment
             });
 
-            // Map recommendations
-            const aiData = result.ai_analysis_recommendations;
             setAiRecommendations(aiData);
             setSeverityLevel(aiData.severity_level || 1);
-
-            // Set checklist
+            
+            // Map checklist base
             setCompletedDocs({
                 has_medical_resume: !!aiData.resume_medis,
                 has_lab_results: !!aiData.hasil_laboratorium,
@@ -157,16 +155,47 @@ export default function DiagnosisValidation() {
 
                 // Map database relations into recommendation state
                 const severityObj = Array.isArray(analysis.severity) ? analysis.severity[0] : analysis.severity;
+                
+                // Safely parse checklist
+                let hasResume = false;
+                let hasLab = false;
+                let hasRad = false;
+                let hasObs = false;
+                
+                if (severityObj && severityObj.checklist) {
+                    try {
+                        const parsed = JSON.parse(severityObj.checklist);
+                        if (Array.isArray(parsed)) {
+                            hasResume = parsed.includes("Resume Medis");
+                            hasLab = parsed.includes("Laboratorium");
+                            hasRad = parsed.includes("Radiologi");
+                            hasObs = parsed.includes("Observasi");
+                        } else if (typeof parsed === 'object') {
+                            hasResume = !!parsed.resume_medis;
+                            hasLab = !!parsed.hasil_laboratorium;
+                            hasRad = !!parsed.hasil_radiologi;
+                            hasObs = !!parsed.lembar_observasi;
+                        }
+                    } catch (e) {
+                        // Fallback if it's a raw string
+                        const raw = String(severityObj.checklist);
+                        hasResume = raw.includes("Resume Medis") || raw.includes("resume_medis");
+                        hasLab = raw.includes("Laboratorium") || raw.includes("hasil_laboratorium");
+                        hasRad = raw.includes("Radiologi") || raw.includes("hasil_radiologi");
+                        hasObs = raw.includes("Observasi") || raw.includes("lembar_observasi");
+                    }
+                }
+
                 const aiData = {
                     diagnosis_primer: analysis.diagnosis ? analysis.diagnosis.filter(d => d.is_primary) : [],
                     diagnosis_sekunder: analysis.diagnosis ? analysis.diagnosis.filter(d => !d.is_primary) : [],
                     tindakan_medis: analysis.treatment || [],
                     severity_level: severityObj ? severityObj.level : 1,
                     severity_justifikasi: severityObj ? severityObj.justification : "",
-                    resume_medis: severityObj?.checklist?.includes("Resume Medis"),
-                    hasil_laboratorium: severityObj?.checklist?.includes("Laboratorium"),
-                    hasil_radiologi: severityObj?.checklist?.includes("Radiologi"),
-                    lembar_observasi: severityObj?.checklist?.includes("Observasi"),
+                    resume_medis: hasResume,
+                    hasil_laboratorium: hasLab,
+                    hasil_radiologi: hasRad,
+                    lembar_observasi: hasObs,
                     jenis_pelayanan: analysis.service_type
                 };
 
@@ -198,7 +227,7 @@ export default function DiagnosisValidation() {
 
     const prepopulateDiagnoses = async (aiData) => {
         // Prepopulate primary diagnosis
-        const primaryAi = aiData.diagnosis_primer?.find(d => d.rekomendasi_ai || d.is_ai_recommendation);
+        const primaryAi = aiData.diagnosis_primer?.find(d => d.rekomendasi_ai || d.is_ai_recommendation) || aiData.diagnosis_primer?.[0];
         if (primaryAi) {
             const code = primaryAi.kode || primaryAi.code;
             try {
@@ -372,8 +401,8 @@ export default function DiagnosisValidation() {
         selectedTreatments.filter(t => t.is_selected).forEach(t => {
             if (selectedPrimaryDiagnosis && t.inacbg) {
                 const primaryChapter = selectedPrimaryDiagnosis.icd10_code.charAt(0);
-                const treatmentInacbgLetter = t.inacbg.charAt(0);
-                if (primaryChapter !== treatmentInacbgLetter && treatmentInacbgLetter !== "Z" && treatmentInacbgLetter !== "U") {
+                const treatmentInacbgLetter = t.inacbg.charAt(0).toUpperCase();
+                if (/[A-Z]/.test(treatmentInacbgLetter) && primaryChapter !== treatmentInacbgLetter && treatmentInacbgLetter !== "Z" && treatmentInacbgLetter !== "U") {
                     warnings.push(`⚠️ Kode INACBG tindakan ${t.code} (${t.inacbg}) tidak sejalan dengan kelompok diagnosis primer (${primaryChapter}).`);
                     score -= 15;
                 }
@@ -412,7 +441,7 @@ export default function DiagnosisValidation() {
         });
 
         // 5. Severity mismatch check
-        if (aiRecommendations && aiRecommendations.severity_level !== level) {
+        if (aiRecommendations && parseInt(aiRecommendations.severity_level, 10) !== level) {
             warnings.push(`⚠️ Level keparahan yang dipilih (Level ${level}) berbeda dengan rekomendasi AI (Level ${aiRecommendations.severity_level}).`);
             score -= 15;
         }
@@ -444,26 +473,24 @@ export default function DiagnosisValidation() {
 
     // Financial Calculation Logic
     const calculateFinancials = () => {
-        // 1. Coverage BPJS (from Primary Diagnosis claim)
-        const coverage = selectedPrimaryDiagnosis ? parseFloat(selectedPrimaryDiagnosis.claim || 0) : 0;
-
-        // 2. Base Hospital Cost depending on severity level
-        const baseCostMapping = { 1: 3000000, 2: 2000000, 3: 1000000 };
-        const baseCost = baseCostMapping[parseInt(severityLevel, 10)] || 1000000;
-
-        // 3. Treatment costs
+        // 1. Treatment costs (Murni dari total harga tindakan yang dicentang user)
         const treatmentCost = selectedTreatments
             .filter(t => t.is_selected)
             .reduce((sum, t) => sum + (parseFloat(t.cost) || 0), 0);
 
-        const totalCost = baseCost + treatmentCost;
-        const profit = coverage - totalCost;
+        const totalCost = treatmentCost;
+
+        // 2. Coverage BPJS (Karena belum ada Grouper, diset 0 murni)
+        const coverage = 0;
+        
+        // 3. Profit (Belum bisa dihitung)
+        const profit = 0;
 
         return {
             coverage,
             totalCost,
             profit,
-            isProfitable: profit >= 0
+            isProfitable: true // Neutral status
         };
     };
 
@@ -482,8 +509,10 @@ export default function DiagnosisValidation() {
             // Construct payload matching createTransactionSchema
             const payload = {
                 patient_name: patientInfo.patient_name,
+                encounter_number: patientInfo.encounter_number,
                 primary_diagnosis: selectedPrimaryDiagnosis.id,
                 secondary_diagnosis: selectedSecondaryDiagnoses.map(d => d.id),
+                treatment: selectedTreatments,
                 document_checklist: {
                     has_medical_resume: completedDocs.has_medical_resume,
                     has_lab_results: completedDocs.has_lab_results,
@@ -517,59 +546,61 @@ export default function DiagnosisValidation() {
     // Render Encounter Selector Panel if no data loaded
     if (!patientInfo) {
         return (
-            <div className="container-fluid">
-                <div className="mb-4">
-                    <h2 className="fw-bold text-primary">
-                        <i className="bi bi-clipboard2-pulse me-2"></i>
+            <div className="container-fluid sc-animate-in mx-auto" style={{ padding: "2rem", maxWidth: "1440px" }}>
+                <div className="sc-page-header">
+                    <h2>
+                        <i className="bi bi-clipboard2-pulse text-primary me-2"></i>
                         Diagnosis Validation
                     </h2>
-                    <p className="text-muted">
-                        Pilih data kunjungan pasien (Encounter) yang sudah di-analisis oleh AI untuk divalidasi kodenya.
-                    </p>
+                    <p>Pilih data kunjungan pasien (Encounter) yang sudah di-analisis oleh AI untuk divalidasi kodenya.</p>
                 </div>
 
                 <div className="card shadow-sm border-0">
                     <div className="card-header bg-white py-3">
-                        <h5 className="mb-0 fw-bold">Recent Encounter AI Analyses</h5>
+                        <div className="sc-section-header">
+                            <i className="bi bi-clock-history text-muted"></i>
+                            Recent Encounter AI Analyses
+                        </div>
                     </div>
-                    <div className="card-body">
+                    <div className="card-body p-0">
                         {loading ? (
-                            <div className="text-center py-5">
+                            <div className="text-center py-5 sc-animate-in">
                                 <div className="spinner-border text-primary" role="status"></div>
-                                <p className="mt-2 text-muted">Memuat data kunjungan...</p>
+                                <p className="mt-3 text-muted">Memuat data kunjungan...</p>
                             </div>
                         ) : encounters.length === 0 ? (
-                            <div className="text-center py-5">
-                                <i className="bi bi-folder-x fs-1 text-muted"></i>
-                                <p className="mt-3 text-muted">Belum ada riwayat analisis AI. Silakan masuk ke menu <strong>New Analysis</strong> terlebih dahulu.</p>
+                            <div className="sc-empty-state">
+                                <i className="bi bi-folder-x sc-empty-icon"></i>
+                                <h5>Belum ada riwayat analisis AI</h5>
+                                <p>Silakan masuk ke menu <strong>New Analysis</strong> terlebih dahulu.</p>
                             </div>
                         ) : (
-                            <div className="table-responsive">
-                                <table className="table table-hover align-middle">
-                                    <thead className="table-light">
+                            <div className="table-responsive border-0 mb-0">
+                                <table className="table table-hover align-middle mb-0">
+                                    <thead>
                                         <tr>
-                                            <th>Pasien</th>
+                                            <th className="ps-4">Pasien</th>
                                             <th>No. RM</th>
                                             <th>Encounter No.</th>
                                             <th>Unit/Layanan</th>
                                             <th>Tanggal</th>
-                                            <th className="text-end">Aksi</th>
+                                            <th className="text-end pe-4">Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {encounters.map((enc) => (
-                                            <tr key={enc.id}>
-                                                <td>
-                                                    <div className="fw-bold">{enc.patient_name}</div>
+                                        {encounters.map((enc, idx) => (
+                                            <tr key={enc.id} className={`sc-stagger-${(idx % 5) + 1}`}>
+                                                <td className="ps-4">
+                                                    <div className="fw-bold text-dark">{enc.patient_name}</div>
                                                     <small className="text-muted">{enc.gender}, {enc.age} Th</small>
                                                 </td>
-                                                <td><code>{enc.patient_id}</code></td>
-                                                <td><code>{enc.encounter_number}</code></td>
+                                                <td><span className="badge bg-light text-secondary border">{enc.patient_id}</span></td>
+                                                <td><span className="badge bg-light text-secondary border">{enc.encounter_number}</span></td>
                                                 <td>
-                                                    <span className="badge bg-light text-dark me-2">{enc.service_type}</span>
+                                                    <span className="sc-pill sc-pill-info">{enc.service_type}</span>
                                                 </td>
                                                 <td>{new Date(enc.created_at || Date.now()).toLocaleDateString('id-ID')}</td>
-                                                <td className="text-end">
+                                                <td className="text-end pe-4">
                                                     <button
                                                         className="btn btn-primary btn-sm"
                                                         onClick={() => loadEncounterAnalysis(enc.encounter_number)}
@@ -591,45 +622,47 @@ export default function DiagnosisValidation() {
     }
 
     return (
-        <div className="container-fluid" style={{ background: "#f8fafc", minHeight: "100vh" }}>
+        <div className="container-fluid sc-animate-in mx-auto" style={{ padding: "2rem", maxWidth: "1440px" }}>
             {/* Top Navigation & Info Header */}
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <button className="btn btn-sm btn-outline-secondary mb-2" onClick={() => { setPatientInfo(null); setAiRecommendations(null); fetchRecentEncounters(); }}>
+                    <button className="btn btn-sm btn-outline-secondary mb-3" onClick={() => { setPatientInfo(null); setAiRecommendations(null); fetchRecentEncounters(); }}>
                         <i className="bi bi-arrow-left me-1"></i> Kembali ke Daftar
                     </button>
-                    <h2 className="fw-bold mb-0 text-primary">
+                    <h2 className="fw-bold mb-1 text-primary" style={{ letterSpacing: "-0.025em" }}>
                         🏥 Validasi Klaim: {patientInfo.patient_name}
                     </h2>
-                    <small className="text-muted">
-                        No. Encounter: <code>{patientInfo.encounter_number}</code> | RM: <code>{patientInfo.patient_id}</code> | Unit: {patientInfo.unit}
-                    </small>
+                    <div className="text-secondary small">
+                        No. Encounter: <span className="badge bg-light text-dark border me-2">{patientInfo.encounter_number}</span>
+                        RM: <span className="badge bg-light text-dark border me-2">{patientInfo.patient_id}</span>
+                        Unit: <strong>{patientInfo.unit}</strong>
+                    </div>
                 </div>
                 <div className="d-flex gap-2">
-                    <span className="badge bg-info text-white p-2 fs-6">
+                    <span className="sc-pill sc-pill-info fs-6 px-3 py-2">
                         <i className="bi bi-heart-pulse me-1"></i> {patientInfo.service_type}
                     </span>
-                    <span className="badge bg-secondary p-2 fs-6">
+                    <span className="sc-pill bg-secondary text-white fs-6 px-3 py-2">
                         Severity AI: Level {aiRecommendations?.severity_level}
                     </span>
                 </div>
             </div>
 
             {/* SOAP Context Summary Accordion */}
-            <div className="card shadow-sm border-0 mb-4 bg-light">
-                <div className="card-body py-2 px-3">
-                    <div className="row text-dark">
+            <div className="card shadow-sm border-0 mb-4 bg-white sc-hover-lift">
+                <div className="card-body p-4">
+                    <div className="row g-4 text-dark">
                         <div className="col-md-4 border-end">
-                            <strong>Subjective (Keluhan):</strong>
-                            <p className="mb-0 text-muted small">{patientInfo.subjective}</p>
+                            <h6 className="fw-bold text-secondary text-uppercase" style={{ fontSize: "0.75rem", letterSpacing: "0.05em" }}>Subjective (Keluhan)</h6>
+                            <p className="mb-0 text-dark">{patientInfo.subjective}</p>
                         </div>
                         <div className="col-md-4 border-end">
-                            <strong>Objective (Pemeriksaan Fisik/Vital):</strong>
-                            <p className="mb-0 text-muted small">{patientInfo.objective}</p>
+                            <h6 className="fw-bold text-secondary text-uppercase" style={{ fontSize: "0.75rem", letterSpacing: "0.05em" }}>Objective (Fisik/Vital)</h6>
+                            <p className="mb-0 text-dark">{patientInfo.objective}</p>
                         </div>
                         <div className="col-md-4">
-                            <strong>Assessment (Diagnosis Awal):</strong>
-                            <p className="mb-0 text-muted small">{patientInfo.assessment}</p>
+                            <h6 className="fw-bold text-secondary text-uppercase" style={{ fontSize: "0.75rem", letterSpacing: "0.05em" }}>Assessment (Diagnosis Awal)</h6>
+                            <p className="mb-0 text-dark">{patientInfo.assessment}</p>
                         </div>
                     </div>
                 </div>
@@ -638,51 +671,53 @@ export default function DiagnosisValidation() {
             {/* Main Validation Layout: Two Columns */}
             <div className="row g-4">
                 
-                {/* LEFT COLUMN: AI Recommendations References */}
-                <div className="col-lg-6">
+                {/* RIGHT COLUMN (VISUALLY): AI Recommendations References */}
+                <div className="col-lg-4 order-lg-2 mb-4">
                     
                     {/* AI Diagnosis suggestions */}
-                    <div className="card shadow-sm border-0 mb-4" style={{ borderLeft: "5px solid #0891b2" }}>
+                    <div className="card shadow-sm border-0 mb-4 sc-card-accent-info sc-hover-glow">
                         <div className="card-header bg-white py-3">
-                            <h5 className="mb-0 fw-bold text-info">
-                                <i className="bi bi-cpu me-2"></i>
+                            <div className="sc-section-header text-info">
+                                <i className="bi bi-cpu"></i>
                                 Rekomendasi Diagnosis AI
-                            </h5>
+                            </div>
                         </div>
-                        <div className="card-body">
-                            <h6 className="fw-bold text-secondary border-bottom pb-2">Diagnosis Primer</h6>
+                        <div className="card-body p-4">
+                            <h6 className="fw-bold text-secondary text-uppercase border-bottom pb-2 mb-3" style={{ fontSize: "0.75rem", letterSpacing: "0.05em" }}>Diagnosis Primer</h6>
                             {aiRecommendations?.diagnosis_primer?.map((diag, idx) => (
-                                <div key={idx} className="p-3 mb-3 bg-light rounded border-start border-danger border-4">
-                                    <div className="d-flex justify-content-between align-items-center">
-                                        <h6 className="fw-bold text-dark mb-1">
-                                            <code>{diag.kode || diag.code}</code> - {diag.nama || diag.title}
+                                <div key={idx} className="p-3 mb-4 bg-light rounded border sc-hover-lift" style={{ borderLeft: "4px solid var(--sc-primary) !important" }}>
+                                    <div className="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 className="fw-bold text-dark mb-0">
+                                            <span className="badge bg-white text-primary border me-2">{diag.kode || diag.code}</span>
+                                            {diag.nama || diag.title}
                                         </h6>
-                                        <span className="badge bg-danger">Confidence: {diag.confidence}%</span>
+                                        <span className="sc-pill sc-pill-primary">Conf: {diag.confidence}%</span>
                                     </div>
-                                    <p className="small text-muted mb-0 mt-2">
+                                    <div className="small text-muted p-2 bg-white rounded border mb-2">
                                         <strong>Alasan:</strong> {diag.alasan || diag.reason}
-                                    </p>
-                                    <small className="text-secondary">
-                                        INACBG Group: <strong>{diag.inacbg || "A"}</strong>
+                                    </div>
+                                    <small className="text-secondary d-flex align-items-center">
+                                        <i className="bi bi-tag-fill me-1 text-primary"></i> INACBG Group: <strong>{diag.inacbg || "A"}</strong>
                                     </small>
                                 </div>
                             ))}
 
-                            <h6 className="fw-bold text-secondary border-bottom pb-2 mt-4">Diagnosis Sekunder</h6>
+                            <h6 className="fw-bold text-secondary text-uppercase border-bottom pb-2 mt-4 mb-3" style={{ fontSize: "0.75rem", letterSpacing: "0.05em" }}>Diagnosis Sekunder</h6>
                             {aiRecommendations?.diagnosis_sekunder?.length === 0 ? (
                                 <p className="text-muted small">Tidak ada saran diagnosis sekunder.</p>
                             ) : (
                                 aiRecommendations?.diagnosis_sekunder?.map((diag, idx) => (
-                                    <div key={idx} className="p-2 mb-2 bg-light rounded border-start border-info border-3">
-                                        <div className="d-flex justify-content-between align-items-center">
-                                            <span className="fw-semibold text-dark small">
-                                                <code>{diag.kode || diag.code}</code> - {diag.nama || diag.title}
-                                            </span>
-                                            <span className="badge bg-info text-white small">Conf: {diag.confidence}%</span>
+                                    <div key={idx} className="p-3 mb-3 bg-light rounded border sc-hover-lift" style={{ borderLeft: "4px solid var(--sc-info) !important" }}>
+                                        <div className="d-flex justify-content-between align-items-center mb-2">
+                                            <div className="fw-semibold text-dark">
+                                                <span className="badge bg-white text-info border me-2">{diag.kode || diag.code}</span>
+                                                {diag.nama || diag.title}
+                                            </div>
+                                            <span className="sc-pill sc-pill-info">Conf: {diag.confidence}%</span>
                                         </div>
-                                        <p className="text-muted mb-0 mt-1" style={{ fontSize: "0.8rem" }}>
+                                        <div className="small text-muted" style={{ fontSize: "0.8rem" }}>
                                             <strong>Alasan:</strong> {diag.alasan || diag.reason}
-                                        </p>
+                                        </div>
                                     </div>
                                 ))
                             )}
@@ -690,30 +725,31 @@ export default function DiagnosisValidation() {
                     </div>
 
                     {/* AI Medical Treatment suggestions */}
-                    <div className="card shadow-sm border-0 mb-4" style={{ borderLeft: "5px solid #0891b2" }}>
+                    <div className="card shadow-sm border-0 mb-4 sc-card-accent-info sc-hover-glow">
                         <div className="card-header bg-white py-3">
-                            <h5 className="mb-0 fw-bold text-info">
-                                <i className="bi bi-activity me-2"></i>
-                                Rekomendasi Tindakan AI (ICD-9-CM)
-                            </h5>
+                            <div className="sc-section-header text-info">
+                                <i className="bi bi-activity"></i>
+                                Rekomendasi Tindakan (ICD-9-CM)
+                            </div>
                         </div>
-                        <div className="card-body">
+                        <div className="card-body p-4">
                             {aiRecommendations?.tindakan_medis?.length === 0 ? (
                                 <p className="text-muted">Tidak ada rekomendasi tindakan medis.</p>
                             ) : (
                                 aiRecommendations?.tindakan_medis?.map((action, idx) => (
-                                    <div key={idx} className="p-3 mb-2 bg-light rounded border">
-                                        <div className="d-flex justify-content-between">
-                                            <span className="fw-bold text-dark">
-                                                <code>{action.kode || action.code}</code> - {action.nama || action.title}
-                                            </span>
-                                            <span className="badge bg-light text-primary">Rec: {action.confidence || 90}%</span>
+                                    <div key={idx} className="p-3 mb-3 bg-light rounded border sc-hover-lift">
+                                        <div className="d-flex justify-content-between align-items-center mb-2">
+                                            <div className="fw-bold text-dark">
+                                                <span className="badge bg-white text-secondary border me-2">{action.kode || action.code}</span>
+                                                {action.nama || action.title}
+                                            </div>
+                                            <span className="sc-pill bg-secondary text-white">Rec: {action.confidence || 90}%</span>
                                         </div>
-                                        <div className="d-flex justify-content-between align-items-center mt-2" style={{ fontSize: "0.8rem" }}>
-                                            <span className="text-muted">Kategori: <strong>{action.kategori || action.category}</strong></span>
-                                            <span className="text-success fw-bold">Linkage INACBG: {action.inacbg}</span>
+                                        <div className="d-flex justify-content-between align-items-center mb-2" style={{ fontSize: "0.8rem" }}>
+                                            <span className="text-muted"><i className="bi bi-bookmark me-1"></i> {action.kategori || action.category}</span>
+                                            <span className="text-success fw-bold"><i className="bi bi-link-45deg me-1"></i> INACBG: {action.inacbg}</span>
                                         </div>
-                                        <p className="small text-muted mt-2 mb-0"><strong>Justifikasi:</strong> {action.alasan || action.reason}</p>
+                                        <div className="small text-muted p-2 bg-white rounded border"><strong>Justifikasi:</strong> {action.alasan || action.reason}</div>
                                     </div>
                                 ))
                             )}
@@ -721,37 +757,37 @@ export default function DiagnosisValidation() {
                     </div>
                 </div>
 
-                {/* RIGHT COLUMN: Doctor Selections & Interactive Rules Engine */}
-                <div className="col-lg-6">
+                {/* LEFT COLUMN (VISUALLY): Doctor Selections & Interactive Rules Engine */}
+                <div className="col-lg-8 order-lg-1">
                     
                     {/* Doctor selection input panel */}
-                    <div className="card shadow-sm border-0 mb-4" style={{ borderLeft: "5px solid #1e40af" }}>
+                    <div className="card shadow-sm border-0 mb-4 sc-card-accent-primary sc-hover-glow">
                         <div className="card-header bg-white py-3">
-                            <h5 className="mb-0 fw-bold text-primary">
-                                <i className="bi bi-file-earmark-medical me-2"></i>
-                                Diagnosis Final (Dokter Selection)
-                            </h5>
+                            <div className="sc-section-header text-primary">
+                                <i className="bi bi-file-earmark-medical"></i>
+                                Diagnosis Final (Doctor Selection)
+                            </div>
                         </div>
-                        <div className="card-body">
+                        <div className="card-body p-4">
                             
                             {/* Search autocomplete container */}
                             <div className="mb-4 position-relative" ref={dropdownRef}>
-                                <label className="form-label fw-bold">
+                                <label className="form-label text-secondary text-uppercase" style={{ fontSize: "0.75rem", letterSpacing: "0.05em" }}>
                                     Cari Master Diagnosis ICD-10
                                 </label>
-                                <div className="input-group">
-                                    <span className="input-group-text"><i className="bi bi-search"></i></span>
+                                <div className="input-group input-group-lg shadow-sm">
+                                    <span className="input-group-text bg-white border-end-0 text-muted"><i className="bi bi-search"></i></span>
                                     <input
                                         type="text"
-                                        className="form-control"
-                                        placeholder="Ketik kode ICD atau nama penyakit (min 2 huruf)..."
+                                        className="form-control border-start-0 ps-0"
+                                        placeholder="Ketik kode ICD atau nama penyakit..."
                                         value={searchQuery}
                                         onChange={(e) => { setSearchQuery(e.target.value); setShowResultsDropdown(true); }}
                                         onFocus={() => setShowResultsDropdown(true)}
                                     />
                                     <select
-                                        className="form-select border-start-0"
-                                        style={{ maxWidth: "150px" }}
+                                        className="form-select bg-light fw-semibold"
+                                        style={{ maxWidth: "160px", borderLeft: "1px solid var(--sc-border)" }}
                                         value={searchTargetType}
                                         onChange={(e) => setSearchTargetType(e.target.value)}
                                     >
@@ -761,20 +797,20 @@ export default function DiagnosisValidation() {
                                 </div>
 
                                 {showResultsDropdown && searchResults.length > 0 && (
-                                    <ul className="list-group position-absolute w-100 mt-1 shadow-lg z-3 overflow-y-auto" style={{ maxHeight: "250px" }}>
+                                    <ul className="list-group position-absolute w-100 mt-2 shadow-lg z-3 overflow-y-auto" style={{ maxHeight: "300px", borderRadius: "var(--sc-radius-md)" }}>
                                         {searchResults.map((diag) => (
                                             <li
                                                 key={diag.id}
-                                                className="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                                                className="list-group-item list-group-item-action d-flex justify-content-between align-items-center p-3 border-bottom"
                                                 style={{ cursor: "pointer" }}
                                                 onClick={() => handleSelectDiagnosis(diag)}
                                             >
                                                 <div>
                                                     <span className="badge bg-secondary me-2">{diag.icd10_code}</span>
-                                                    <strong>{diag.disease_name}</strong>
-                                                    <div className="small text-muted">{diag.doctor_diagnosis}</div>
+                                                    <strong className="text-dark">{diag.disease_name}</strong>
+                                                    <div className="small text-muted mt-1">{diag.doctor_diagnosis}</div>
                                                 </div>
-                                                <span className="text-success fw-bold small">Rp {parseFloat(diag.claim).toLocaleString('id-ID')}</span>
+                                                {diag.claim > 0 && <div className="text-success fw-bold mb-1 fs-6">Rp {parseFloat(diag.claim).toLocaleString('id-ID')}</div>}
                                             </li>
                                         ))}
                                     </ul>
@@ -783,44 +819,50 @@ export default function DiagnosisValidation() {
 
                             {/* Display chosen primary diagnosis */}
                             <div className="mb-4">
-                                <h6 className="fw-bold text-dark mb-2">Diagnosis Primer Terpilled (Wajib 1)</h6>
+                                <h6 className="fw-bold text-secondary text-uppercase mb-3" style={{ fontSize: "0.75rem", letterSpacing: "0.05em" }}>Diagnosis Primer Terpilih (Wajib 1)</h6>
                                 {selectedPrimaryDiagnosis ? (
-                                    <div className="p-3 bg-white border border-success rounded d-flex justify-content-between align-items-center">
+                                    <div className="p-3 bg-white border border-success rounded d-flex justify-content-between align-items-center sc-hover-lift" style={{ borderLeft: "4px solid var(--sc-success) !important" }}>
                                         <div>
-                                            <span className="badge bg-success me-2">{selectedPrimaryDiagnosis.icd10_code}</span>
-                                            <strong>{selectedPrimaryDiagnosis.disease_name}</strong>
-                                            <div className="small text-muted">{selectedPrimaryDiagnosis.doctor_diagnosis}</div>
+                                            <span className="badge bg-success me-3 p-2 fs-6">{selectedPrimaryDiagnosis.icd10_code}</span>
+                                            <strong className="fs-6">{selectedPrimaryDiagnosis.disease_name}</strong>
+                                            <div className="small text-muted mt-1">{selectedPrimaryDiagnosis.doctor_diagnosis}</div>
                                         </div>
                                         <div className="text-end">
-                                            <div className="text-success fw-bold">Rp {parseFloat(selectedPrimaryDiagnosis.claim).toLocaleString('id-ID')}</div>
-                                            <button className="btn btn-sm btn-link text-danger p-0 mt-1" onClick={() => setSelectedPrimaryDiagnosis(null)}>
-                                                Hapus
+                                            {selectedPrimaryDiagnosis.claim > 0 && <div className="text-success fw-bold mb-1 fs-5">Rp {parseFloat(selectedPrimaryDiagnosis.claim).toLocaleString('id-ID')}</div>}
+                                            <button className="btn btn-sm btn-outline-danger py-1 px-2" onClick={() => setSelectedPrimaryDiagnosis(null)}>
+                                                <i className="bi bi-trash me-1"></i> Hapus
                                             </button>
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="alert alert-danger mb-0 py-2">
-                                        <i className="bi bi-exclamation-octagon me-2"></i>
-                                        Belum ada diagnosis primer terpilih. Cari di kolom pencarian di atas.
+                                    <div className="alert alert-danger mb-0 d-flex align-items-center">
+                                        <i className="bi bi-exclamation-octagon fs-4 me-3"></i>
+                                        <div>
+                                            <strong>Belum ada diagnosis primer terpilih.</strong>
+                                            <div className="small mt-1">Cari dan pilih melalui kolom pencarian di atas.</div>
+                                        </div>
                                     </div>
                                 )}
                             </div>
 
                             {/* Display chosen secondary diagnoses */}
                             <div className="mb-4">
-                                <h6 className="fw-bold text-dark mb-2">Diagnosis Sekunder Terpilih (Maksimal 2)</h6>
+                                <h6 className="fw-bold text-secondary text-uppercase mb-3" style={{ fontSize: "0.75rem", letterSpacing: "0.05em" }}>Diagnosis Sekunder Terpilih (Maksimal 2)</h6>
                                 {selectedSecondaryDiagnoses.length === 0 ? (
-                                    <p className="text-muted small mb-0">Belum ada diagnosis sekunder terpilih.</p>
+                                    <div className="p-3 bg-light border rounded text-center text-muted border-dashed">
+                                        <i className="bi bi-inbox fs-4 d-block mb-2 text-black-50"></i>
+                                        Belum ada diagnosis sekunder terpilih.
+                                    </div>
                                 ) : (
-                                    <div className="d-flex flex-column gap-2">
+                                    <div className="d-flex flex-column gap-3">
                                         {selectedSecondaryDiagnoses.map((diag) => (
-                                            <div key={diag.id} className="p-2 bg-white border rounded d-flex justify-content-between align-items-center">
+                                            <div key={diag.id} className="p-3 bg-white border rounded d-flex justify-content-between align-items-center sc-hover-lift" style={{ borderLeft: "4px solid var(--sc-secondary) !important" }}>
                                                 <div>
-                                                    <span className="badge bg-secondary me-2">{diag.icd10_code}</span>
-                                                    <span className="fw-semibold text-dark small">{diag.disease_name}</span>
+                                                    <span className="badge bg-secondary me-3 p-2 fs-6">{diag.icd10_code}</span>
+                                                    <span className="fw-semibold text-dark fs-6">{diag.disease_name}</span>
                                                 </div>
-                                                <button className="btn btn-sm btn-link text-danger p-0 text-decoration-none" onClick={() => removeSecondaryDiagnosis(diag.id)}>
-                                                    <i className="bi bi-x-circle fs-6"></i>
+                                                <button className="btn btn-outline-danger btn-sm" onClick={() => removeSecondaryDiagnosis(diag.id)}>
+                                                    <i className="bi bi-x-lg"></i>
                                                 </button>
                                             </div>
                                         ))}
@@ -830,23 +872,25 @@ export default function DiagnosisValidation() {
 
                             {/* Treatment Selection final */}
                             <div className="mb-2">
-                                <h6 className="fw-bold text-dark mb-2">Tindakan Medis terpilih (ICD-9-CM)</h6>
+                                <h6 className="fw-bold text-secondary text-uppercase mb-3" style={{ fontSize: "0.75rem", letterSpacing: "0.05em" }}>Tindakan Medis Terpilih (ICD-9-CM)</h6>
                                 <div className="d-flex flex-column gap-2">
                                     {selectedTreatments.map((t) => (
-                                        <div key={t.code} className={`p-2 border rounded d-flex justify-content-between align-items-center ${t.is_selected ? 'bg-light border-primary' : 'bg-white opacity-50'}`}>
-                                            <div className="form-check">
+                                        <div key={t.code} className={`p-3 border rounded d-flex justify-content-between align-items-center sc-hover-border ${t.is_selected ? 'bg-light border-primary shadow-sm' : 'bg-white'}`} style={{ transition: "all 0.2s" }}>
+                                            <div className="form-check d-flex align-items-center m-0">
                                                 <input
-                                                    className="form-check-input"
+                                                    className="form-check-input me-3"
+                                                    style={{ width: "1.25rem", height: "1.25rem" }}
                                                     type="checkbox"
                                                     id={`doc-t-${t.code}`}
                                                     checked={t.is_selected}
                                                     onChange={() => toggleTreatment(t.code)}
                                                 />
-                                                <label className="form-check-label text-dark small" htmlFor={`doc-t-${t.code}`}>
-                                                    <strong>[{t.code}]</strong> {t.title}
+                                                <label className="form-check-label text-dark" htmlFor={`doc-t-${t.code}`} style={{ cursor: "pointer" }}>
+                                                    <span className="badge bg-white border text-dark me-2">{t.code}</span>
+                                                    <strong className={t.is_selected ? "text-dark" : "text-muted"}>{t.title}</strong>
                                                 </label>
                                             </div>
-                                            <span className="text-muted small">Rp {parseFloat(t.cost).toLocaleString('id-ID')}</span>
+                                            <span className="sc-pill sc-pill-primary opacity-75">Rp {parseFloat(t.cost).toLocaleString('id-ID')}</span>
                                         </div>
                                     ))}
                                 </div>
@@ -855,159 +899,126 @@ export default function DiagnosisValidation() {
                     </div>
 
                     {/* Document Checklist Panel */}
-                    <div className="card shadow-sm border-0 mb-4" style={{ borderLeft: "5px solid #d97706" }}>
+                    <div className="card shadow-sm border-0 mb-4 sc-card-accent-warning sc-hover-glow">
                         <div className="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                            <h5 className="mb-0 fw-bold text-warning">
-                                <i className="bi bi-file-earmark-check me-2"></i>
-                                BPJS Claims Document Checklist
-                            </h5>
-                            <div className="d-flex align-items-center">
-                                <label className="me-2 fw-bold text-dark mb-0 small">Severity Level:</label>
-                                <select className="form-select form-select-sm" style={{ width: "100px" }} value={severityLevel} onChange={(e) => setSeverityLevel(parseInt(e.target.value, 10))}>
+                            <div className="sc-section-header text-warning">
+                                <i className="bi bi-file-earmark-check"></i>
+                                BPJS Documents Checklist
+                            </div>
+                            <div className="d-flex align-items-center bg-light px-3 py-1 rounded border">
+                                <label className="me-2 fw-bold text-dark mb-0 small text-uppercase" style={{ fontSize: "0.7rem", letterSpacing: "0.05em" }}>Severity Level:</label>
+                                <select className="form-select form-select-sm border-0 bg-transparent fw-bold text-primary" style={{ width: "auto", boxShadow: "none", padding: "0 1.5rem 0 0.5rem" }} value={severityLevel} onChange={(e) => setSeverityLevel(parseInt(e.target.value, 10))}>
                                     <option value="1">Level 1</option>
                                     <option value="2">Level 2</option>
                                     <option value="3">Level 3</option>
                                 </select>
                             </div>
                         </div>
-                        <div className="card-body">
-                            <p className="text-muted small">
+                        <div className="card-body p-4">
+                            <p className="text-muted small mb-4 bg-light p-3 rounded border">
+                                <i className="bi bi-info-circle text-primary me-2"></i>
                                 Dokumen wajib ditentukan berdasarkan <strong>Severity Level {severityLevel}</strong>. Kelalaian melengkapi berkas ini akan menyebabkan klaim tertunda atau ditolak.
                             </p>
                             
-                            <div className="list-group list-group-flush border rounded p-2">
-                                <div className="form-check py-2 border-bottom">
-                                    <input
-                                        className="form-check-input"
-                                        type="checkbox"
-                                        id="doc-resume"
-                                        checked={completedDocs.has_medical_resume}
-                                        onChange={(e) => setCompletedDocs({ ...completedDocs, has_medical_resume: e.target.checked })}
-                                    />
-                                    <label className="form-check-label text-dark" htmlFor="doc-resume">
-                                        Resume Medis Lengkap <span className="badge bg-danger ms-2">Wajib Lvl 1,2,3</span>
-                                    </label>
+                            <div className="d-flex flex-column gap-2">
+                                <div className={`form-check p-3 border rounded d-flex align-items-center sc-hover-border ${completedDocs.has_medical_resume ? 'bg-success-subtle border-success' : 'bg-white'}`}>
+                                    <input className="form-check-input ms-0 me-3 mt-0" style={{ width: "1.25rem", height: "1.25rem" }} type="checkbox" id="doc-resume" checked={completedDocs.has_medical_resume} onChange={(e) => setCompletedDocs({ ...completedDocs, has_medical_resume: e.target.checked })} />
+                                    <label className="form-check-label text-dark flex-grow-1 fw-medium" htmlFor="doc-resume">Resume Medis Lengkap</label>
+                                    <span className="sc-pill sc-pill-danger">Wajib Lvl 1,2,3</span>
                                 </div>
 
-                                <div className="form-check py-2 border-bottom">
-                                    <input
-                                        className="form-check-input"
-                                        type="checkbox"
-                                        id="doc-lab"
-                                        checked={completedDocs.has_lab_results}
-                                        onChange={(e) => setCompletedDocs({ ...completedDocs, has_lab_results: e.target.checked })}
-                                    />
-                                    <label className="form-check-label text-dark" htmlFor="doc-lab">
-                                        Hasil Pemeriksaan Lab <span className={`badge ms-2 ${severityLevel >= 2 ? 'bg-danger' : 'bg-secondary'}`}>{severityLevel >= 2 ? 'Wajib Lvl 2,3' : 'Disarankan'}</span>
-                                    </label>
+                                <div className={`form-check p-3 border rounded d-flex align-items-center sc-hover-border ${completedDocs.has_lab_results ? 'bg-success-subtle border-success' : 'bg-white'}`}>
+                                    <input className="form-check-input ms-0 me-3 mt-0" style={{ width: "1.25rem", height: "1.25rem" }} type="checkbox" id="doc-lab" checked={completedDocs.has_lab_results} onChange={(e) => setCompletedDocs({ ...completedDocs, has_lab_results: e.target.checked })} />
+                                    <label className="form-check-label text-dark flex-grow-1 fw-medium" htmlFor="doc-lab">Hasil Pemeriksaan Lab</label>
+                                    <span className={`sc-pill ${severityLevel >= 2 ? 'sc-pill-danger' : 'bg-secondary text-white'}`}>{severityLevel >= 2 ? 'Wajib Lvl 2,3' : 'Disarankan'}</span>
                                 </div>
 
-                                <div className="form-check py-2 border-bottom">
-                                    <input
-                                        className="form-check-input"
-                                        type="checkbox"
-                                        id="doc-imaging"
-                                        checked={completedDocs.has_imaging}
-                                        onChange={(e) => setCompletedDocs({ ...completedDocs, has_imaging: e.target.checked })}
-                                    />
-                                    <label className="form-check-label text-dark" htmlFor="doc-imaging">
-                                        Hasil Radiologi / Imaging <span className={`badge ms-2 ${severityLevel >= 3 ? 'bg-danger' : severityLevel === 2 ? 'bg-warning' : 'bg-secondary'}`}>{severityLevel >= 3 ? 'Wajib Lvl 3' : severityLevel === 2 ? 'Disarankan' : 'Opsional'}</span>
-                                    </label>
+                                <div className={`form-check p-3 border rounded d-flex align-items-center sc-hover-border ${completedDocs.has_imaging ? 'bg-success-subtle border-success' : 'bg-white'}`}>
+                                    <input className="form-check-input ms-0 me-3 mt-0" style={{ width: "1.25rem", height: "1.25rem" }} type="checkbox" id="doc-imaging" checked={completedDocs.has_imaging} onChange={(e) => setCompletedDocs({ ...completedDocs, has_imaging: e.target.checked })} />
+                                    <label className="form-check-label text-dark flex-grow-1 fw-medium" htmlFor="doc-imaging">Hasil Radiologi / Imaging</label>
+                                    <span className={`sc-pill ${severityLevel >= 3 ? 'sc-pill-danger' : severityLevel === 2 ? 'sc-pill-warning' : 'bg-secondary text-white'}`}>{severityLevel >= 3 ? 'Wajib Lvl 3' : severityLevel === 2 ? 'Disarankan' : 'Opsional'}</span>
                                 </div>
 
-                                <div className="form-check py-2 border-bottom">
-                                    <input
-                                        className="form-check-input"
-                                        type="checkbox"
-                                        id="doc-specialist"
-                                        checked={completedDocs.has_specialist_consultation}
-                                        onChange={(e) => setCompletedDocs({ ...completedDocs, has_specialist_consultation: e.target.checked })}
-                                    />
-                                    <label className="form-check-label text-dark" htmlFor="doc-specialist">
-                                        Konsultasi Dokter Spesialis <span className={`badge ms-2 ${severityLevel >= 2 ? 'bg-danger' : 'bg-secondary'}`}>{severityLevel >= 2 ? 'Wajib Lvl 2,3' : 'Opsional'}</span>
-                                    </label>
+                                <div className={`form-check p-3 border rounded d-flex align-items-center sc-hover-border ${completedDocs.has_specialist_consultation ? 'bg-success-subtle border-success' : 'bg-white'}`}>
+                                    <input className="form-check-input ms-0 me-3 mt-0" style={{ width: "1.25rem", height: "1.25rem" }} type="checkbox" id="doc-specialist" checked={completedDocs.has_specialist_consultation} onChange={(e) => setCompletedDocs({ ...completedDocs, has_specialist_consultation: e.target.checked })} />
+                                    <label className="form-check-label text-dark flex-grow-1 fw-medium" htmlFor="doc-specialist">Konsultasi Dokter Spesialis</label>
+                                    <span className={`sc-pill ${severityLevel >= 2 ? 'sc-pill-danger' : 'bg-secondary text-white'}`}>{severityLevel >= 2 ? 'Wajib Lvl 2,3' : 'Opsional'}</span>
                                 </div>
 
-                                <div className="form-check py-2 border-bottom">
-                                    <input
-                                        className="form-check-input"
-                                        type="checkbox"
-                                        id="doc-iv"
-                                        checked={completedDocs.has_iv_therapy_proof}
-                                        onChange={(e) => setCompletedDocs({ ...completedDocs, has_iv_therapy_proof: e.target.checked })}
-                                    />
-                                    <label className="form-check-label text-dark" htmlFor="doc-iv">
-                                        Bukti Pemberian Terapi IV (Insulin, Infus, dll) <span className={`badge ms-2 ${severityLevel >= 3 ? 'bg-danger' : 'bg-secondary'}`}>{severityLevel >= 3 ? 'Wajib Lvl 3' : 'Opsional'}</span>
-                                    </label>
+                                <div className={`form-check p-3 border rounded d-flex align-items-center sc-hover-border ${completedDocs.has_iv_therapy_proof ? 'bg-success-subtle border-success' : 'bg-white'}`}>
+                                    <input className="form-check-input ms-0 me-3 mt-0" style={{ width: "1.25rem", height: "1.25rem" }} type="checkbox" id="doc-iv" checked={completedDocs.has_iv_therapy_proof} onChange={(e) => setCompletedDocs({ ...completedDocs, has_iv_therapy_proof: e.target.checked })} />
+                                    <label className="form-check-label text-dark flex-grow-1 fw-medium" htmlFor="doc-iv">Bukti Terapi IV (Insulin, Infus)</label>
+                                    <span className={`sc-pill ${severityLevel >= 3 ? 'sc-pill-danger' : 'bg-secondary text-white'}`}>{severityLevel >= 3 ? 'Wajib Lvl 3' : 'Opsional'}</span>
                                 </div>
 
-                                <div className="form-check py-2 border-bottom">
-                                    <input
-                                        className="form-check-input"
-                                        type="checkbox"
-                                        id="doc-notes"
-                                        checked={completedDocs.has_daily_care_notes}
-                                        onChange={(e) => setCompletedDocs({ ...completedDocs, has_daily_care_notes: e.target.checked })}
-                                    />
-                                    <label className="form-check-label text-dark" htmlFor="doc-notes">
-                                        Catatan Harian Perawatan (Asuhan Keperawatan) <span className={`badge ms-2 ${severityLevel >= 3 ? 'bg-danger' : severityLevel === 2 ? 'bg-warning' : 'bg-secondary'}`}>{severityLevel >= 3 ? 'Wajib Lvl 3' : severityLevel === 2 ? 'Disarankan' : 'Opsional'}</span>
-                                    </label>
+                                <div className={`form-check p-3 border rounded d-flex align-items-center sc-hover-border ${completedDocs.has_daily_care_notes ? 'bg-success-subtle border-success' : 'bg-white'}`}>
+                                    <input className="form-check-input ms-0 me-3 mt-0" style={{ width: "1.25rem", height: "1.25rem" }} type="checkbox" id="doc-notes" checked={completedDocs.has_daily_care_notes} onChange={(e) => setCompletedDocs({ ...completedDocs, has_daily_care_notes: e.target.checked })} />
+                                    <label className="form-check-label text-dark flex-grow-1 fw-medium" htmlFor="doc-notes">Catatan Harian Perawatan</label>
+                                    <span className={`sc-pill ${severityLevel >= 3 ? 'sc-pill-danger' : severityLevel === 2 ? 'sc-pill-warning' : 'bg-secondary text-white'}`}>{severityLevel >= 3 ? 'Wajib Lvl 3' : severityLevel === 2 ? 'Disarankan' : 'Opsional'}</span>
                                 </div>
 
-                                <div className="form-check py-2">
-                                    <input
-                                        className="form-check-input"
-                                        type="checkbox"
-                                        id="doc-min5day"
-                                        checked={completedDocs.has_min_5day_inpatient}
-                                        onChange={(e) => setCompletedDocs({ ...completedDocs, has_min_5day_inpatient: e.target.checked })}
-                                    />
-                                    <label className="form-check-label text-dark" htmlFor="doc-min5day">
-                                        Surat Rawat Inap ≥ 5 Hari <span className="badge bg-secondary ms-2">Opsional</span>
-                                    </label>
+                                <div className={`form-check p-3 border rounded d-flex align-items-center sc-hover-border ${completedDocs.has_min_5day_inpatient ? 'bg-success-subtle border-success' : 'bg-white'}`}>
+                                    <input className="form-check-input ms-0 me-3 mt-0" style={{ width: "1.25rem", height: "1.25rem" }} type="checkbox" id="doc-min5day" checked={completedDocs.has_min_5day_inpatient} onChange={(e) => setCompletedDocs({ ...completedDocs, has_min_5day_inpatient: e.target.checked })} />
+                                    <label className="form-check-label text-dark flex-grow-1 fw-medium" htmlFor="doc-min5day">Surat Rawat Inap ≥ 5 Hari</label>
+                                    <span className="sc-pill bg-secondary text-white">Opsional</span>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     {/* Claim Risk Assessment Panel */}
-                    <div className="card shadow-sm border-0 mb-4 bg-white">
+                    <div className="card shadow-sm border-0 mb-4 bg-white sc-hover-lift">
                         <div className="card-header bg-white py-3">
-                            <h5 className="mb-0 fw-bold text-dark">
-                                <i className="bi bi-shield-alert me-2"></i>
+                            <div className="sc-section-header text-dark">
+                                <i className="bi bi-shield-check"></i>
                                 Claim Approval Risk Assessment
-                            </h5>
+                            </div>
                         </div>
-                        <div className="card-body text-center py-4">
-                            <div className="d-flex justify-content-center align-items-center mb-3">
-                                <div className={`rounded-circle text-white d-flex flex-column justify-content-center align-items-center shadow`} style={{ width: "120px", height: "120px", background: validation.riskBadgeColor === "success" ? "#059669" : validation.riskBadgeColor === "warning" ? "#d97706" : "#dc2626" }}>
-                                    <h2 className="fw-bold mb-0">{validation.riskScore}%</h2>
-                                    <small style={{ fontSize: "0.7rem" }}>Risk Index</small>
+                        <div className="card-body py-5 px-4 text-center" style={{ background: "linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)" }}>
+                            <div className="d-flex justify-content-center align-items-center mb-4">
+                                <div className="rounded-circle text-white d-flex flex-column justify-content-center align-items-center shadow-lg" 
+                                     style={{ 
+                                         width: "140px", 
+                                         height: "140px", 
+                                         background: validation.riskBadgeColor === "success" ? "linear-gradient(135deg, #22C55E 0%, #15803d 100%)" : 
+                                                     validation.riskBadgeColor === "warning" ? "linear-gradient(135deg, #F59E0B 0%, #b45309 100%)" : 
+                                                     "linear-gradient(135deg, #EF4444 0%, #b91c1c 100%)",
+                                         border: "4px solid rgba(255,255,255,0.2)"
+                                     }}>
+                                    <h1 className="fw-bold mb-0" style={{ fontSize: "3.5rem", letterSpacing: "-0.05em" }}>{validation.riskScore}</h1>
+                                    <span className="fw-semibold opacity-75 text-uppercase" style={{ fontSize: "0.7rem", letterSpacing: "0.1em" }}>Score</span>
                                 </div>
                             </div>
                             
-                            <h5 className="fw-bold text-dark">
+                            <h4 className="fw-bold text-dark mb-1">
                                 Peluang Klaim Diterima: {" "}
                                 <span className={`text-${validation.riskBadgeColor} text-uppercase`}>
                                     {validation.riskLevel === "low" ? "Tinggi" : validation.riskLevel === "medium" ? "Sedang" : "Rendah"}
                                 </span>
-                            </h5>
+                            </h4>
+                            <p className="text-muted small mb-4">Skor dihitung secara real-time berdasarkan kelengkapan berkas, koherensi medis, dan aturan BPJS.</p>
 
-                            <div className="text-start mt-3">
+                            <div className="text-start mt-4">
                                 {validation.errors.length > 0 && (
-                                    <div className="alert alert-danger py-2 px-3 small">
-                                        <div className="fw-bold mb-1">Critical Issues (Submit Terkunci):</div>
-                                        <ul className="mb-0 ps-3">
-                                            {validation.errors.map((err, i) => <li key={i}>{err}</li>)}
+                                    <div className="alert alert-danger p-4 mb-3 shadow-sm border-0 sc-animate-up">
+                                        <div className="d-flex align-items-center mb-3">
+                                            <i className="bi bi-x-circle-fill fs-4 me-2"></i>
+                                            <h6 className="fw-bold mb-0">Critical Issues (Submit Terkunci)</h6>
+                                        </div>
+                                        <ul className="mb-0 ps-3 text-dark">
+                                            {validation.errors.map((err, i) => <li key={i} className="mb-1">{err}</li>)}
                                         </ul>
                                     </div>
                                 )}
                                 
                                 {validation.warnings.length > 0 && (
-                                    <div className="alert alert-warning py-2 px-3 small">
-                                        <div className="fw-bold mb-1">Warnings / Alerts (Butuh Konfirmasi Dokter):</div>
-                                        <ul className="mb-0 ps-3">
-                                            {validation.warnings.map((warn, i) => <li key={i}>{warn}</li>)}
+                                    <div className="alert alert-warning p-4 shadow-sm border-0 sc-animate-up">
+                                        <div className="d-flex align-items-center mb-3">
+                                            <i className="bi bi-exclamation-triangle-fill fs-4 me-2"></i>
+                                            <h6 className="fw-bold mb-0">Warnings / Alerts (Butuh Konfirmasi Dokter)</h6>
+                                        </div>
+                                        <ul className="mb-0 ps-3 text-dark">
+                                            {validation.warnings.map((warn, i) => <li key={i} className="mb-1">{warn}</li>)}
                                         </ul>
                                     </div>
                                 )}
@@ -1015,73 +1026,73 @@ export default function DiagnosisValidation() {
                         </div>
                     </div>
 
-                    {/* Financial Projections */}
-                    <div className="card shadow-sm border-0 mb-4 bg-white" style={{ borderLeft: "5px solid #059669" }}>
+
+
+                    {/* Financial Projections - Real Data Only */}
+                    <div className="card shadow-sm border-0 mb-4 bg-white sc-hover-lift" style={{ borderLeft: "4px solid var(--sc-primary) !important" }}>
                         <div className="card-header bg-white py-3">
-                            <h5 className="mb-0 fw-bold text-success">
-                                <i className="bi bi-cash-stack me-2"></i>
+                            <div className="sc-section-header text-primary">
+                                <i className="bi bi-cash-stack"></i>
                                 Proyeksi Finansial Rumah Sakit
-                            </h5>
+                            </div>
                         </div>
-                        <div className="card-body">
-                            <div className="d-flex justify-content-between align-items-center mb-2">
-                                <span className="text-secondary">Plafon Pertanggungan BPJS (Claim Coverage):</span>
-                                <span className="fw-bold text-dark">Rp {financials.coverage.toLocaleString('id-ID')}</span>
+                        <div className="card-body p-4">
+                            <div className="p-3 bg-light rounded border mb-3">
+                                <div className="d-flex justify-content-between align-items-center mb-2">
+                                    <span className="text-secondary fw-medium">Plafon Pertanggungan BPJS (Claim Coverage):</span>
+                                    <span className="fw-bold text-dark fs-5 text-muted">Menunggu INA-CBG</span>
+                                </div>
+                                <div className="d-flex justify-content-between align-items-center">
+                                    <span className="text-secondary fw-medium">Estimasi Biaya Rumah Sakit (Hospital Cost):</span>
+                                    <span className="fw-bold text-dark fs-5">Rp {financials.totalCost.toLocaleString('id-ID')}</span>
+                                </div>
                             </div>
-                            <div className="d-flex justify-content-between align-items-center mb-2">
-                                <span className="text-secondary">Estimasi Biaya Rumah Sakit (Hospital Cost):</span>
-                                <span className="fw-bold text-danger">Rp {financials.totalCost.toLocaleString('id-ID')}</span>
-                            </div>
-                            <hr />
-                            <div className="d-flex justify-content-between align-items-center mb-3">
-                                <span className="fw-bold text-dark">Estimasi Net Profit/Loss:</span>
-                                <span className={`fw-bold fs-5 ${financials.isProfitable ? 'text-success' : 'text-danger'}`}>
-                                    {financials.profit >= 0 ? '+' : ''}Rp {financials.profit.toLocaleString('id-ID')}
+                            
+                            <div className="d-flex justify-content-between align-items-center p-3 rounded bg-light border">
+                                <span className="fw-bold text-dark fs-5">Estimasi Net Profit/Loss:</span>
+                                <span className="fw-bold fs-5 text-muted">
+                                    Menunggu INA-CBG
                                 </span>
                             </div>
 
-                            {financials.profit < 0 ? (
-                                <div className="alert alert-danger py-2 small mb-0">
-                                    <i className="bi bi-exclamation-triangle-fill me-2"></i>
-                                    <strong>Loss Alert!</strong> Klaim ini memiliki estimasi biaya perawatan yang melebihi plafon pertanggungan BPJS. Lakukan penyesuaian severity level atau tindakan.
+                            <div className="mt-3">
+                                <div className="alert alert-info py-2 small mb-0 d-flex align-items-center">
+                                    <i className="bi bi-info-circle-fill fs-5 me-2"></i>
+                                    <span><strong>Proyeksi belum tersedia.</strong> Profit/Loss baru dapat dihitung setelah proses grouping INA-CBG selesai untuk mendapatkan tarif pasti. Biaya Rumah Sakit di atas adalah murni total dari tindakan medis yang Anda pilih.</span>
                                 </div>
-                            ) : (
-                                <div className="alert alert-success py-2 small mb-0">
-                                    <i className="bi bi-check-circle-fill me-2"></i>
-                                    <strong>Profitable Claim!</strong> Estimasi pertanggungan aman dan menghasilkan profit positif bagi operasional Rumah Sakit.
-                                </div>
-                            )}
+                            </div>
                         </div>
                     </div>
 
                     {/* Final submission gate */}
-                    <div className="card shadow-sm border-0 bg-white">
+                    <div className="card shadow-lg border-0 bg-white mb-4">
                         <div className="card-body p-4">
-                            <div className="mb-3">
-                                <label className="form-label fw-bold">Catatan Peninjauan Dokter (Optional)</label>
+                            <div className="mb-4">
+                                <label className="form-label fw-bold text-secondary text-uppercase" style={{ fontSize: "0.75rem", letterSpacing: "0.05em" }}>Catatan Peninjauan Dokter (Optional)</label>
                                 <textarea
-                                    className="form-control"
+                                    className="form-control bg-light"
                                     rows="2"
-                                    placeholder="Masukkan penjelasan diagnosis tambahan atau kronologi penyakit untuk klaim..."
+                                    placeholder="Masukkan penjelasan diagnosis tambahan atau kronologi penyakit untuk lampiran BPJS..."
                                     value={notes}
                                     onChange={(e) => setNotes(e.target.value)}
                                 />
                             </div>
 
                             <button
-                                className={`btn btn-lg w-100 py-3 ${validation.isValid ? 'btn-success' : 'btn-secondary'}`}
+                                className={`btn btn-lg w-100 py-3 d-flex justify-content-center align-items-center shadow-sm ${validation.isValid ? 'btn-success' : 'btn-secondary'}`}
                                 disabled={!validation.isValid || loading}
                                 onClick={handleSubmitClaim}
+                                style={{ fontSize: "1.1rem", fontWeight: "700", transition: "all 0.3s" }}
                             >
                                 {loading ? (
                                     <>
-                                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                        Memproses Transaksi...
+                                        <span className="spinner-border spinner-border-sm me-3" role="status" aria-hidden="true" style={{ width: "1.5rem", height: "1.5rem" }}></span>
+                                        Memproses Transaksi ke BPJS Gate...
                                     </>
                                 ) : (
                                     <>
-                                        <i className="bi bi-shield-check me-2"></i>
-                                        {validation.isValid ? "Submit Klaim Ke BPJS Gate" : "Submit Terkunci (Selesaikan Error)"}
+                                        <i className={`bi ${validation.isValid ? 'bi-cloud-arrow-up-fill' : 'bi-lock-fill'} me-2 fs-4`}></i>
+                                        {validation.isValid ? "SUBMIT KLAIM KE BPJS GATE" : "SUBMIT TERKUNCI (SELESAIKAN ERROR)"}
                                     </>
                                 )}
                             </button>

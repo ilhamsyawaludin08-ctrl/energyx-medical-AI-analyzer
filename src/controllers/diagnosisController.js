@@ -60,7 +60,7 @@ exports.recomendation = async (req, res) => {
 
         return res.status(500).json({ 
             status: 500,
-            message: `Gagal: ${error.message}` });
+            message: `Gagal: ${error.message || error}` });
     }
 }
 
@@ -92,7 +92,7 @@ exports.recomendationV1 = async (req, res) => {
 
         return res.status(500).json({ 
             status: 500,
-            message: `Gagal: ${error.message}` });
+            message: `Gagal: ${error.message || error}` });
     }
 }
 
@@ -114,6 +114,6 @@ exports.updateMrconso = async (req, res) => {
 
         return res.status(500).json({ 
             status: 500,
-            message: `Gagal: ${error.message}` });
+            message: `Gagal: ${error.message || error}` });
     }
 }

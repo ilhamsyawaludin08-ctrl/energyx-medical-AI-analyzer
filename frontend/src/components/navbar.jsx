@@ -33,25 +33,64 @@ export default function Navbar() {
 
     return (
         <div
-            className="bg-white px-4 py-3 d-flex justify-content-between align-items-center border-bottom shadow-sm"
             style={{
-                borderColor: "#e2e8f0",
-                fontFamily: "'Inter', sans-serif"
+                background: "var(--sc-bg-card, #FFFFFF)",
+                borderBottom: "1px solid var(--sc-border, #E5E7EB)",
+                padding: "14px 28px",
+                fontFamily: "'Inter', sans-serif",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
+                position: "relative",
+                zIndex: 5
             }}
         >
             {/* System Title Left */}
             <div>
-                <h4 className="mb-0 fw-bold text-dark d-flex align-items-center gap-2" style={{ fontSize: "1.25rem" }}>
-                    <span>BPJS Claim Prevention System</span>
-                    <span 
-                        className="badge bg-success-subtle text-success border border-success-subtle rounded-pill py-1 px-2 d-none d-md-flex align-items-center gap-1"
-                        style={{ fontSize: "0.7rem", fontWeight: "500" }}
+                <div className="d-flex align-items-center gap-2" style={{ marginBottom: "2px" }}>
+                    <h4
+                        className="mb-0 fw-bold"
+                        style={{
+                            fontSize: "1.15rem",
+                            color: "var(--sc-text-primary, #111827)",
+                            letterSpacing: "-0.01em"
+                        }}
                     >
-                        <span className="spinner-grow spinner-grow-sm text-success" role="status" style={{ width: "6px", height: "6px" }}></span>
+                        BPJS Claim Prevention System
+                    </h4>
+                    <span
+                        className="d-none d-md-inline-flex align-items-center gap-1"
+                        style={{
+                            fontSize: "0.65rem",
+                            fontWeight: 600,
+                            letterSpacing: "0.5px",
+                            color: "var(--sc-success, #22C55E)",
+                            background: "rgba(34, 197, 94, 0.08)",
+                            border: "1px solid rgba(34, 197, 94, 0.2)",
+                            borderRadius: "var(--sc-radius-pill, 100px)",
+                            padding: "3px 10px"
+                        }}
+                    >
+                        <span
+                            style={{
+                                width: "6px",
+                                height: "6px",
+                                borderRadius: "50%",
+                                background: "var(--sc-success, #22C55E)",
+                                display: "inline-block",
+                                animation: "sc-pulse-dot 2s infinite"
+                            }}
+                        ></span>
                         Secured
                     </span>
-                </h4>
-                <small className="text-muted" style={{ fontSize: "0.8rem" }}>
+                </div>
+                <small
+                    style={{
+                        fontSize: "0.78rem",
+                        color: "var(--sc-text-secondary, #6B7280)"
+                    }}
+                >
                     AI-Assisted Medical Validation | {userProfile.hospitalName}
                 </small>
             </div>
@@ -59,35 +98,82 @@ export default function Navbar() {
             {/* User Profile Right */}
             <div className="d-flex align-items-center gap-3">
                 {/* Notifications icon */}
-                <div className="position-relative me-2" style={{ cursor: "pointer" }}>
-                    <i className="bi bi-bell text-secondary fs-5 hover-color-primary"></i>
-                    <span className="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
+                <div
+                    className="sc-nav-bell position-relative"
+                    style={{
+                        cursor: "pointer",
+                        padding: "8px",
+                        borderRadius: "var(--sc-radius-sm, 8px)",
+                        transition: "all 0.2s ease"
+                    }}
+                >
+                    <i
+                        className="bi bi-bell"
+                        style={{
+                            fontSize: "1.2rem",
+                            color: "var(--sc-text-secondary, #6B7280)",
+                            transition: "color 0.2s ease"
+                        }}
+                    ></i>
+                    <span
+                        style={{
+                            position: "absolute",
+                            top: "6px",
+                            right: "6px",
+                            width: "8px",
+                            height: "8px",
+                            borderRadius: "50%",
+                            background: "var(--sc-danger, #EF4444)",
+                            border: "2px solid var(--sc-bg-card, #FFFFFF)"
+                        }}
+                    >
                         <span className="visually-hidden">New alerts</span>
                     </span>
                 </div>
 
                 {/* Divider */}
-                <div className="border-start" style={{ height: "30px", borderColor: "#e2e8f0" }}></div>
+                <div
+                    style={{
+                        width: "1px",
+                        height: "32px",
+                        background: "var(--sc-border, #E5E7EB)"
+                    }}
+                ></div>
 
                 {/* Profile Info & Avatar */}
-                <div className="d-flex align-items-center">
-                    <div className="text-end me-3 d-none d-sm-block">
-                        <div className="fw-bold text-dark small" style={{ fontSize: "0.875rem" }}>
+                <div className="d-flex align-items-center gap-2" style={{ cursor: "pointer" }}>
+                    <div className="text-end d-none d-sm-block">
+                        <div
+                            className="fw-semibold"
+                            style={{
+                                fontSize: "0.85rem",
+                                color: "var(--sc-text-primary, #111827)",
+                                lineHeight: 1.3
+                            }}
+                        >
                             {userProfile.name}
                         </div>
-                        <small className="text-secondary d-block" style={{ fontSize: "0.75rem" }}>
+                        <small
+                            className="d-block"
+                            style={{
+                                fontSize: "0.72rem",
+                                color: "var(--sc-text-secondary, #6B7280)"
+                            }}
+                        >
                             {userProfile.role}
                         </small>
                     </div>
 
                     <div
-                        className="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center fw-bold shadow-sm"
+                        className="d-flex justify-content-center align-items-center fw-bold text-white"
                         style={{
-                            width: 42,
-                            height: 42,
-                            border: "2px solid #3b82f6",
-                            fontSize: "1.1rem",
-                            transition: "all 0.2s ease"
+                            width: 40,
+                            height: 40,
+                            borderRadius: "var(--sc-radius-sm, 8px)",
+                            background: "var(--sc-primary-gradient, linear-gradient(135deg, #2563EB, #1e40af))",
+                            fontSize: "1rem",
+                            boxShadow: "0 2px 8px rgba(37, 99, 235, 0.25)",
+                            transition: "var(--sc-transition, all 0.2s ease)"
                         }}
                     >
                         {getInitials(userProfile.name)}
@@ -97,8 +183,15 @@ export default function Navbar() {
 
             {/* Custom styling hover micro-animations */}
             <style>{`
-                .hover-color-primary:hover {
-                    color: #2563eb !important;
+                .sc-nav-bell:hover {
+                    background: rgba(37, 99, 235, 0.06);
+                }
+                .sc-nav-bell:hover i {
+                    color: var(--sc-primary, #2563EB) !important;
+                }
+                @keyframes sc-pulse-dot {
+                    0%, 100% { opacity: 1; }
+                    50% { opacity: 0.4; }
                 }
             `}</style>
         </div>

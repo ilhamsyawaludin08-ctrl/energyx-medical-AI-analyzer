@@ -40,9 +40,41 @@ const getMrconsoIndo = async (req) => {
   }
 }
 
+const createMrconso = async (req) => {
+  try {
+    return await mrconsoRepository.createMrconso(req.body);
+  } catch (err) {
+    console.error("Error:", err);
+    throw err;
+  }
+}
+
+const updateMrconso = async (req) => {
+  try {
+    const code = req.params.code;
+    return await mrconsoRepository.updateMrconso(code, req.body);
+  } catch (err) {
+    console.error("Error:", err);
+    throw err;
+  }
+}
+
+const deleteMrconso = async (req) => {
+  try {
+    const code = req.params.code;
+    return await mrconsoRepository.deleteMrconso(code);
+  } catch (err) {
+    console.error("Error:", err);
+    throw err;
+  }
+}
+
 module.exports = { 
   getTreatment,
   getDiagnosis,
   getMrconso,
   getMrconsoIndo,
+  createMrconso,
+  updateMrconso,
+  deleteMrconso
 };

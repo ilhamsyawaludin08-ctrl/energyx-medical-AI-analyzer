@@ -4,6 +4,7 @@ const transactionBPJSRepository = require('../repositories/transactionBPJSReposi
 const masterDiagnosisRepository = require("../repositories/masterDiagnosisRepository");
 const transactionBPJSHasDiagnosisRepository = require("../repositories/transactionBPJSHasDiagnosisRepository");
 const transactionBPJSDocumentRepository = require("../repositories/transactionBPJSDocumentRepository");
+const { AiAnalysis, AiDiagnosis, AiSeverity, AiTreatment } = require('../models');
 const moment = require('moment');
 
 const SEVERITY_COSTS = {
@@ -14,41 +15,40 @@ const SEVERITY_COSTS = {
 
 const createTransaction = async (data) => {
   try {
-    // Validasi primary diagnosis
-    const primaryDiagnosis = await masterDiagnosisRepository.findById(data.primary_diagnosis);
+    // Validasi & Resolve primary diagnosis (dari string code misal 'A15.0' ke integer ID MasterDiagnosis)
+    const primaryDiagnosis = await masterDiagnosisRepository.findOrCreateByCode(data.primary_diagnosis);
     if (!primaryDiagnosis) {
-      throw new ApiError(404, `Primary diagnosis dengan ID ${data.primary_diagnosis} tidak ditemukan`);
+      throw new ApiError(404, `Primary diagnosis dengan kode ICD-10 ${data.primary_diagnosis} tidak ditemukan`);
     }
+    // Ganti string code menjadi integer ID agar sesuai struktur database
+    data.primary_diagnosis = primaryDiagnosis.id;
 
-    // Validasi secondary diagnosis jika ada
+    // Validasi & Resolve secondary diagnosis jika ada
     if (data.secondary_diagnosis && Array.isArray(data.secondary_diagnosis)) {
-      for (const diagnosisId of data.secondary_diagnosis) {
-        const secondaryDiagnosis = await masterDiagnosisRepository.findById(diagnosisId);
+      const resolvedSecondaryIds = [];
+      for (const diagnosisCode of data.secondary_diagnosis) {
+        const secondaryDiagnosis = await masterDiagnosisRepository.findOrCreateByCode(diagnosisCode);
         if (!secondaryDiagnosis) {
-          throw new ApiError(404, `Secondary diagnosis dengan ID ${diagnosisId} tidak ditemukan`);
+          throw new ApiError(404, `Secondary diagnosis dengan kode ICD-10 ${diagnosisCode} tidak ditemukan`);
         }
+        resolvedSecondaryIds.push(secondaryDiagnosis.id);
       }
+      data.secondary_diagnosis = resolvedSecondaryIds;
     }
 
-    // Ambil nilai claim dari primary diagnosis
-    const claimAmount = primaryDiagnosis.claim || 0;
-    
-    // Hitung biaya berdasarkan level (asumsi level ada dalam data)
-    const severityLevel = data.document_checklist.severity_level || 1;
-
-    let costAmount = 0;
-    if (severityLevel === 1) {
-      costAmount = SEVERITY_COSTS[1];
-    } else if (severityLevel === 2) {
-      costAmount = SEVERITY_COSTS[2];
-    } else if (severityLevel === 3) {
-      costAmount = SEVERITY_COSTS[3];
-    } else {
-      costAmount = SEVERITY_COSTS[1];
+    // Hitung biaya treatment murni (tanpa biaya dasar dummy)
+    let treatmentCost = 0;
+    if (data.treatment && Array.isArray(data.treatment)) {
+      treatmentCost = data.treatment.filter(t => t.is_selected).reduce((sum, t) => sum + (parseFloat(t.cost) || 0), 0);
     }
 
-    // Hitung profit
-    const profitAmount = claimAmount - costAmount;
+    const totalCost = treatmentCost;
+
+    // Plafon BPJS diset 0 (karena belum ada grouper)
+    const claimAmount = 0;
+
+    // Hitung profit diset 0
+    const profitAmount = 0;
     
     // Buat transaksi
     const transaction = await transactionBPJSRepository.create({
@@ -56,8 +56,9 @@ const createTransaction = async (data) => {
       status: 'selesai',
       document_status: data.document_checklist.has_medical_resume == true ? 'lengkap' : 'tidak lengkap',
       coverage_amount: claimAmount,
-      cost_amount: costAmount,
+      cost_amount: totalCost,
       profit_amount: profitAmount,
+      created_by: data.user_id || 1,
       transaction_date: moment().format('YYYY-MM-DD')
     });
 
@@ -89,6 +90,71 @@ const createTransaction = async (data) => {
 
     // Ambil transaksi lengkap dengan relasi untuk return
     const completeTransaction = await transactionBPJSRepository.findById(transaction.id);
+    
+    // UPDATE AiAnalysis related records so it persists in the Encounter view
+    try {
+      if (data.encounter_number) {
+        const analysis = await AiAnalysis.findOne({ where: { encounter_number: data.encounter_number } });
+        if (analysis) {
+          // Update Diagnosis
+          await AiDiagnosis.destroy({ where: { analysis_id: analysis.id } });
+          await AiDiagnosis.create({
+            analysis_id: analysis.id,
+            is_primary: true,
+            code: primaryDiagnosis.icd10_code,
+            title: primaryDiagnosis.disease_name,
+            is_ai_recommendation: false,
+            is_selected: true
+          });
+          if (data.secondary_diagnosis && Array.isArray(data.secondary_diagnosis)) {
+            for (const diagnosisId of data.secondary_diagnosis) {
+              const secDiag = await masterDiagnosisRepository.findById(diagnosisId);
+              if (secDiag) {
+                await AiDiagnosis.create({
+                  analysis_id: analysis.id,
+                  is_primary: false,
+                  code: secDiag.icd10_code,
+                  title: secDiag.disease_name,
+                  is_ai_recommendation: false,
+                  is_selected: true
+                });
+              }
+            }
+          }
+          
+          // Update Severity
+          await AiSeverity.destroy({ where: { analysis_id: analysis.id } });
+          const checklistObj = {
+            resume_medis: !!data.document_checklist.has_medical_resume,
+            hasil_laboratorium: !!data.document_checklist.has_lab_results,
+            hasil_radiologi: !!data.document_checklist.has_imaging,
+            lembar_observasi: !!data.document_checklist.has_daily_care_notes
+          };
+          await AiSeverity.create({
+            analysis_id: analysis.id,
+            level: severityLevel,
+            justification: data.notes || "Divalidasi oleh dokter",
+            checklist: JSON.stringify(checklistObj)
+          });
+          
+          // Update Treatment
+          if (data.treatment && Array.isArray(data.treatment)) {
+            await AiTreatment.destroy({ where: { analysis_id: analysis.id } });
+            for (const treat of data.treatment) {
+              await AiTreatment.create({
+                 analysis_id: analysis.id,
+                 code: treat.code || treat.kode_tindakan,
+                 title: treat.title || treat.deskripsi_tindakan,
+                 is_selected: true
+              });
+            }
+          }
+        }
+      }
+    } catch (updateErr) {
+      console.error("Failed to update AiAnalysis records:", updateErr);
+    }
+
     return completeTransaction;
     
   } catch (error) {

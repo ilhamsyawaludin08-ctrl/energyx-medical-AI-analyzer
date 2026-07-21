@@ -55,14 +55,50 @@ export default function Dashboard() {
     }, []);
 
     return (
-        <div className="container-fluid" style={{ background: "#f8fafc" }}>
+        <div className="sc-animate-in" style={{ background: "var(--sc-bg, #f8fafc)", minHeight: "100%" }}>
             {/* Page Header */}
-            <div className="mb-4 d-flex justify-content-between align-items-center">
+            <div className="sc-page-header" style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "2rem",
+                paddingBottom: "1.5rem",
+                borderBottom: "1px solid var(--sc-border, #e2e8f0)"
+            }}>
                 <div>
-                    <h2 className="fw-bold mb-1 text-primary">Dashboard</h2>
-                    <p className="text-muted mb-0">Overview klaim BPJS dan analisis risiko waktu-nyata.</p>
+                    <h2 style={{
+                        fontWeight: 800,
+                        color: "var(--sc-text-primary, #1e293b)",
+                        fontSize: "1.65rem",
+                        marginBottom: "0.25rem",
+                        letterSpacing: "-0.02em"
+                    }}>
+                        <i className="bi bi-grid-1x2 me-2" style={{ color: "var(--sc-primary, #3b82f6)" }}></i>
+                        Dashboard
+                    </h2>
+                    <p style={{
+                        color: "var(--sc-text-secondary, #64748b)",
+                        marginBottom: 0,
+                        fontSize: "0.92rem"
+                    }}>
+                        Overview klaim BPJS dan analisis risiko waktu-nyata.
+                    </p>
                 </div>
-                <button className="btn btn-primary" onClick={() => navigate("/analysis")}>
+                <button
+                    className="btn sc-hover-lift"
+                    style={{
+                        background: "var(--sc-primary-gradient, linear-gradient(135deg, #3b82f6, #6366f1))",
+                        color: "#fff",
+                        fontWeight: 600,
+                        borderRadius: "var(--sc-radius-md, 12px)",
+                        padding: "0.6rem 1.4rem",
+                        border: "none",
+                        boxShadow: "var(--sc-shadow-sm, 0 2px 8px rgba(59,130,246,0.25))",
+                        fontSize: "0.9rem",
+                        transition: "transform 0.2s, box-shadow 0.2s"
+                    }}
+                    onClick={() => navigate("/analysis")}
+                >
                     <i className="bi bi-plus-circle me-2"></i>
                     Buat Analisis Baru
                 </button>
@@ -70,7 +106,7 @@ export default function Dashboard() {
 
             {/* Stats Summary row */}
             <div className="row g-4 mb-4">
-                <div className="col-lg-3 col-md-6">
+                <div className="col-lg-3 col-md-6 sc-stagger-1">
                     <StatCard
                         title="Total Claims"
                         value={loading ? "..." : stats.totalClaims}
@@ -80,7 +116,7 @@ export default function Dashboard() {
                     />
                 </div>
 
-                <div className="col-lg-3 col-md-6">
+                <div className="col-lg-3 col-md-6 sc-stagger-2">
                     <StatCard
                         title="Approval Rate"
                         value={loading ? "..." : stats.approvalRate}
@@ -90,7 +126,7 @@ export default function Dashboard() {
                     />
                 </div>
 
-                <div className="col-lg-3 col-md-6">
+                <div className="col-lg-3 col-md-6 sc-stagger-3">
                     <StatCard
                         title="Pending Review"
                         value={loading ? "..." : stats.pendingReview}
@@ -100,7 +136,7 @@ export default function Dashboard() {
                     />
                 </div>
 
-                <div className="col-lg-3 col-md-6">
+                <div className="col-lg-3 col-md-6 sc-stagger-4">
                     <StatCard
                         title="High Risk Claims"
                         value={loading ? "..." : stats.highRiskClaims}
@@ -114,27 +150,98 @@ export default function Dashboard() {
             {/* Quick Actions & Risk Alerts */}
             <div className="row g-4 mb-4">
                 <div className="col-lg-8">
-                    <div className="card shadow-sm border-0 h-100">
-                        <div className="card-header bg-white py-3">
-                            <h5 className="mb-0 fw-bold">Quick Actions</h5>
+                    <div style={{
+                        background: "var(--sc-bg-card, #fff)",
+                        borderRadius: "var(--sc-radius-lg, 16px)",
+                        boxShadow: "var(--sc-shadow-sm, 0 2px 8px rgba(0,0,0,0.06))",
+                        border: "1px solid var(--sc-border, #e2e8f0)",
+                        height: "100%",
+                        overflow: "hidden"
+                    }}>
+                        <div className="sc-section-header" style={{
+                            padding: "1.25rem 1.5rem",
+                            borderBottom: "1px solid var(--sc-border, #e2e8f0)",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "0.5rem"
+                        }}>
+                            <i className="bi bi-lightning-charge" style={{ color: "var(--sc-primary, #3b82f6)", fontSize: "1.15rem" }}></i>
+                            <h5 style={{
+                                margin: 0,
+                                fontWeight: 700,
+                                color: "var(--sc-text-primary, #1e293b)",
+                                fontSize: "1.05rem"
+                            }}>Quick Actions</h5>
                         </div>
-                        <div className="card-body d-flex gap-3 flex-wrap align-items-center">
-                            <button className="btn btn-primary py-2 px-3" onClick={() => navigate("/analysis")}>
+                        <div style={{ padding: "1.5rem", display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
+                            <button
+                                className="btn sc-hover-lift"
+                                style={{
+                                    background: "var(--sc-primary-gradient, linear-gradient(135deg, #3b82f6, #6366f1))",
+                                    color: "#fff",
+                                    fontWeight: 600,
+                                    borderRadius: "var(--sc-radius-md, 12px)",
+                                    padding: "0.6rem 1.2rem",
+                                    border: "none",
+                                    fontSize: "0.88rem",
+                                    boxShadow: "0 2px 8px rgba(59,130,246,0.2)"
+                                }}
+                                onClick={() => navigate("/analysis")}
+                            >
                                 <i className="bi bi-plus-circle me-2"></i>
                                 Buat Analisis Baru
                             </button>
 
-                            <button className="btn btn-outline-success py-2 px-3" onClick={() => navigate("/diagnosis")}>
+                            <button
+                                className="btn sc-hover-lift"
+                                style={{
+                                    background: "transparent",
+                                    color: "var(--sc-success, #10b981)",
+                                    fontWeight: 600,
+                                    borderRadius: "var(--sc-radius-md, 12px)",
+                                    padding: "0.6rem 1.2rem",
+                                    border: "1.5px solid var(--sc-success, #10b981)",
+                                    fontSize: "0.88rem",
+                                    transition: "all 0.2s"
+                                }}
+                                onClick={() => navigate("/diagnosis")}
+                            >
                                 <i className="bi bi-clipboard2-pulse me-2"></i>
                                 Review Klaim / Validasi
                             </button>
 
-                            <button className="btn btn-outline-dark py-2 px-3" onClick={() => navigate("/transactions")}>
+                            <button
+                                className="btn sc-hover-lift"
+                                style={{
+                                    background: "transparent",
+                                    color: "var(--sc-text-primary, #334155)",
+                                    fontWeight: 600,
+                                    borderRadius: "var(--sc-radius-md, 12px)",
+                                    padding: "0.6rem 1.2rem",
+                                    border: "1.5px solid var(--sc-border, #cbd5e1)",
+                                    fontSize: "0.88rem",
+                                    transition: "all 0.2s"
+                                }}
+                                onClick={() => navigate("/transactions")}
+                            >
                                 <i className="bi bi-file-earmark-medical me-2"></i>
                                 Lihat Transaksi Klaim
                             </button>
                             
-                            <button className="btn btn-outline-secondary py-2 px-3" onClick={() => navigate("/encounters")}>
+                            <button
+                                className="btn sc-hover-lift"
+                                style={{
+                                    background: "transparent",
+                                    color: "var(--sc-text-secondary, #64748b)",
+                                    fontWeight: 600,
+                                    borderRadius: "var(--sc-radius-md, 12px)",
+                                    padding: "0.6rem 1.2rem",
+                                    border: "1.5px solid var(--sc-border, #cbd5e1)",
+                                    fontSize: "0.88rem",
+                                    transition: "all 0.2s"
+                                }}
+                                onClick={() => navigate("/encounters")}
+                            >
                                 <i className="bi bi-person-lines-fill me-2"></i>
                                 Kelola Kunjungan (Encounters)
                             </button>
@@ -143,26 +250,76 @@ export default function Dashboard() {
                 </div>
 
                 <div className="col-lg-4">
-                    <div className="card border-0 shadow-sm h-100">
-                        <div className="card-header bg-danger text-white py-3">
-                            <h5 className="mb-0 fw-bold"><i className="bi bi-exclamation-octagon me-2"></i>Risk Alert</h5>
+                    <div className="sc-card-accent-danger" style={{
+                        background: "var(--sc-bg-card, #fff)",
+                        borderRadius: "var(--sc-radius-lg, 16px)",
+                        boxShadow: "var(--sc-shadow-sm, 0 2px 8px rgba(0,0,0,0.06))",
+                        border: "1px solid var(--sc-border, #e2e8f0)",
+                        height: "100%",
+                        overflow: "hidden",
+                        borderTop: "3px solid var(--sc-danger, #ef4444)"
+                    }}>
+                        <div style={{
+                            padding: "1.25rem 1.5rem",
+                            borderBottom: "1px solid var(--sc-border, #e2e8f0)",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "0.5rem"
+                        }}>
+                            <div style={{
+                                width: "32px",
+                                height: "32px",
+                                borderRadius: "var(--sc-radius-sm, 8px)",
+                                background: "rgba(239,68,68,0.1)",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center"
+                            }}>
+                                <i className="bi bi-exclamation-octagon" style={{ color: "var(--sc-danger, #ef4444)", fontSize: "1rem" }}></i>
+                            </div>
+                            <h5 style={{
+                                margin: 0,
+                                fontWeight: 700,
+                                color: "var(--sc-danger, #ef4444)",
+                                fontSize: "1.05rem"
+                            }}>Risk Alert</h5>
                         </div>
-                        <div className="card-body">
+                        <div style={{ padding: "1.5rem" }}>
                             {stats.highRiskClaims > 0 ? (
                                 <>
-                                    <p className="mb-2 fw-semibold text-danger">
+                                    <p style={{
+                                        marginBottom: "0.5rem",
+                                        fontWeight: 600,
+                                        color: "var(--sc-danger, #ef4444)",
+                                        fontSize: "0.95rem"
+                                    }}>
                                         ⚠️ {stats.highRiskClaims} klaim terdeteksi memiliki risiko penolakan tinggi.
                                     </p>
-                                    <p className="mb-0 text-muted small">
+                                    <p style={{
+                                        marginBottom: 0,
+                                        color: "var(--sc-text-secondary, #64748b)",
+                                        fontSize: "0.84rem",
+                                        lineHeight: 1.6
+                                    }}>
                                         Ada berkas klaim yang diajukan tanpa kelengkapan berkas yang diwajibkan oleh tingkat keparahan (Severity Level). Harap lakukan validasi ulang.
                                     </p>
                                 </>
                             ) : (
                                 <>
-                                    <p className="mb-2 fw-semibold text-success">
+                                    <p style={{
+                                        marginBottom: "0.5rem",
+                                        fontWeight: 600,
+                                        color: "var(--sc-success, #10b981)",
+                                        fontSize: "0.95rem"
+                                    }}>
                                         ✅ Semua berkas klaim terisi lengkap!
                                     </p>
-                                    <p className="mb-0 text-muted small">
+                                    <p style={{
+                                        marginBottom: 0,
+                                        color: "var(--sc-text-secondary, #64748b)",
+                                        fontSize: "0.84rem",
+                                        lineHeight: 1.6
+                                    }}>
                                         Sistem tidak mendeteksi adanya linkage error atau kelalaian berkas pada riwayat klaim terbaru Anda.
                                     </p>
                                 </>
@@ -175,38 +332,116 @@ export default function Dashboard() {
             {/* Chart + Recent Transactions */}
             <div className="row g-4 mb-4">
                 <div className="col-lg-8">
-                    <div className="card shadow-sm border-0 h-100">
-                        <div className="card-header bg-white py-3">
-                            <h5 className="mb-0 fw-bold">Claim Approval Trend</h5>
+                    <div style={{
+                        background: "var(--sc-bg-card, #fff)",
+                        borderRadius: "var(--sc-radius-lg, 16px)",
+                        boxShadow: "var(--sc-shadow-sm, 0 2px 8px rgba(0,0,0,0.06))",
+                        border: "1px solid var(--sc-border, #e2e8f0)",
+                        height: "100%",
+                        overflow: "hidden"
+                    }}>
+                        <div className="sc-section-header" style={{
+                            padding: "1.25rem 1.5rem",
+                            borderBottom: "1px solid var(--sc-border, #e2e8f0)",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "0.5rem"
+                        }}>
+                            <i className="bi bi-graph-up-arrow" style={{ color: "var(--sc-primary, #3b82f6)", fontSize: "1.15rem" }}></i>
+                            <h5 style={{
+                                margin: 0,
+                                fontWeight: 700,
+                                color: "var(--sc-text-primary, #1e293b)",
+                                fontSize: "1.05rem"
+                            }}>Claim Approval Trend</h5>
                         </div>
-                        <div className="card-body">
+                        <div style={{ padding: "1.5rem" }}>
                             <ApprovalChart />
                         </div>
                     </div>
                 </div>
 
                 <div className="col-lg-4">
-                    <div className="card shadow-sm border-0 h-100">
-                        <div className="card-header bg-white py-3">
-                            <h5 className="mb-0 fw-bold">Recent Transactions</h5>
+                    <div style={{
+                        background: "var(--sc-bg-card, #fff)",
+                        borderRadius: "var(--sc-radius-lg, 16px)",
+                        boxShadow: "var(--sc-shadow-sm, 0 2px 8px rgba(0,0,0,0.06))",
+                        border: "1px solid var(--sc-border, #e2e8f0)",
+                        height: "100%",
+                        overflow: "hidden"
+                    }}>
+                        <div className="sc-section-header" style={{
+                            padding: "1.25rem 1.5rem",
+                            borderBottom: "1px solid var(--sc-border, #e2e8f0)",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "0.5rem"
+                        }}>
+                            <i className="bi bi-clock-history" style={{ color: "var(--sc-info, #06b6d4)", fontSize: "1.15rem" }}></i>
+                            <h5 style={{
+                                margin: 0,
+                                fontWeight: 700,
+                                color: "var(--sc-text-primary, #1e293b)",
+                                fontSize: "1.05rem"
+                            }}>Recent Transactions</h5>
                         </div>
-                        <div className="card-body">
+                        <div style={{ padding: "1.25rem 1.5rem" }}>
                             {recentTransactions.length === 0 ? (
-                                <p className="text-muted small">Belum ada transaksi klaim terbaru.</p>
+                                <div className="sc-empty-state" style={{
+                                    textAlign: "center",
+                                    padding: "2rem 1rem"
+                                }}>
+                                    <i className="bi bi-inbox" style={{
+                                        fontSize: "2.5rem",
+                                        color: "var(--sc-border, #cbd5e1)",
+                                        display: "block",
+                                        marginBottom: "0.75rem"
+                                    }}></i>
+                                    <p style={{
+                                        color: "var(--sc-text-secondary, #94a3b8)",
+                                        fontSize: "0.88rem",
+                                        marginBottom: 0
+                                    }}>Belum ada transaksi klaim terbaru.</p>
+                                </div>
                             ) : (
-                                <ul className="list-group list-group-flush">
+                                <div>
                                     {recentTransactions.map((tx) => (
-                                        <li key={tx.id} className="list-group-item d-flex justify-content-between align-items-center px-0 py-3">
+                                        <div key={tx.id} style={{
+                                            display: "flex",
+                                            justifyContent: "space-between",
+                                            alignItems: "center",
+                                            padding: "0.85rem 0",
+                                            borderBottom: "1px solid var(--sc-border, #f1f5f9)"
+                                        }}>
                                             <div>
-                                                <span className="fw-bold text-dark d-block">{tx.patient_name}</span>
-                                                <small className="text-muted">{new Date(tx.created_at || Date.now()).toLocaleDateString('id-ID')}</small>
+                                                <span style={{
+                                                    fontWeight: 600,
+                                                    color: "var(--sc-text-primary, #1e293b)",
+                                                    display: "block",
+                                                    fontSize: "0.92rem"
+                                                }}>{tx.patient_name}</span>
+                                                <small style={{
+                                                    color: "var(--sc-text-secondary, #94a3b8)",
+                                                    fontSize: "0.8rem"
+                                                }}>{new Date(tx.created_at || Date.now()).toLocaleDateString('id-ID')}</small>
                                             </div>
-                                            <span className={`badge ${tx.document_status === "lengkap" ? 'bg-success' : 'bg-warning'}`}>
+                                            <span style={{
+                                                padding: "0.3rem 0.75rem",
+                                                borderRadius: "var(--sc-radius-pill, 100px)",
+                                                fontSize: "0.78rem",
+                                                fontWeight: 600,
+                                                background: tx.document_status === "lengkap"
+                                                    ? "rgba(16,185,129,0.1)"
+                                                    : "rgba(245,158,11,0.1)",
+                                                color: tx.document_status === "lengkap"
+                                                    ? "var(--sc-success, #10b981)"
+                                                    : "var(--sc-warning, #f59e0b)"
+                                            }}>
                                                 {tx.document_status === "lengkap" ? 'Lengkap' : 'Tidak Lengkap'}
                                             </span>
-                                        </li>
+                                        </div>
                                     ))}
-                                </ul>
+                                </div>
                             )}
                         </div>
                     </div>
@@ -214,11 +449,11 @@ export default function Dashboard() {
             </div>
 
             {/* Activity Timeline & Mock Component list */}
-            <div className="row g-4">
-                <div className="col-lg-6">
+            <div className="row g-4" style={{ marginBottom: "1rem" }}>
+                <div className="col-lg-6 sc-stagger-1">
                     <ActivityTimeline />
                 </div>
-                <div className="col-lg-6">
+                <div className="col-lg-6 sc-stagger-2">
                     <HighRiskClaims />
                 </div>
             </div>

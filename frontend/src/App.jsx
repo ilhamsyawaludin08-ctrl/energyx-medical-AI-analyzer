@@ -8,6 +8,8 @@ import Transactions from "./pages/Transactions";
 import Encounters from "./pages/Encounters";
 import Settings from "./pages/Settings";
 import Users from "./pages/Users";
+import MasterICD10 from "./pages/MasterICD10";
+import MasterINACBG from "./pages/MasterINACBG";
 import NotFound from "./pages/NotFound";
 
 import MainLayout from "./layouts/MainLayout";
@@ -79,6 +81,24 @@ function App() {
                 element={
                     <MainLayout>
                         <Users />
+                    </MainLayout>
+                }
+            />
+
+            <Route
+                path="/master/icd10"
+                element={
+                    <MainLayout>
+                        <MasterICD10 />
+                    </MainLayout>
+                }
+            />
+
+            <Route
+                path="/master/inacbg"
+                element={
+                    <MainLayout>
+                        <MasterINACBG />
                     </MainLayout>
                 }
             />

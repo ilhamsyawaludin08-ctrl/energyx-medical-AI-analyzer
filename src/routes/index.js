@@ -6,6 +6,7 @@ const transactionController = require('../controllers/transactionController');
 const recomendationController = require('../controllers/recomendationController')
 const analysisController = require('../controllers/analysisController')
 const mrconsoController = require('../controllers/mrconsoController')
+const inacbgController = require('../controllers/inacbgController')
 const clientController = require('../controllers/clientController')
 
 const userController = require('../controllers/userController')
@@ -58,9 +59,16 @@ v1Router.get('/service/encounters/:encounterNumber', authenticateJWT, analysisCo
 
 // mrconso
 v1Router.get('/mrconso', authenticateJWT, mrconsoController.getMrconso)
+v1Router.get('/mrconso/indo', authenticateJWT, mrconsoController.getMrconsoIndo)
+v1Router.post('/mrconso', authenticateJWT, mrconsoController.createMrconso)
+v1Router.put('/mrconso/:code', authenticateJWT, mrconsoController.updateMrconso)
+v1Router.delete('/mrconso/:code', authenticateJWT, mrconsoController.deleteMrconso)
 
-// mrconso
-v1Router.get('/mrconso_indo', mrconsoController.getMrconsoIndo)
+// inacbg
+v1Router.get('/inacbg', authenticateJWT, inacbgController.getInacbg)
+v1Router.post('/inacbg', authenticateJWT, inacbgController.createInacbg)
+v1Router.put('/inacbg/:inacbg', authenticateJWT, inacbgController.updateInacbg)
+v1Router.delete('/inacbg/:inacbg', authenticateJWT, inacbgController.deleteInacbg)
 
 // client
 v1Router.post('/client/register', clientController.save)

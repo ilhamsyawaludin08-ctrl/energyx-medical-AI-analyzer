@@ -33,6 +33,7 @@ export default function Users() {
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
     const [successMsg, setSuccessMsg] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
 
     // Handle input field changes
     const handleChange = (e) => {
@@ -122,172 +123,356 @@ export default function Users() {
         }
     };
 
+    const inputStyle = {
+        border: '1px solid var(--sc-border)',
+        borderRadius: 'var(--sc-radius-md)',
+        padding: '0.65rem 0.9rem',
+        fontSize: '0.875rem',
+        color: 'var(--sc-text-primary)',
+        background: 'var(--sc-bg)',
+        outline: 'none',
+        width: '100%',
+        transition: 'border-color 0.2s ease, box-shadow 0.2s ease'
+    };
+
+    const labelStyle = {
+        fontSize: '0.75rem',
+        fontWeight: '600',
+        color: 'var(--sc-text-secondary)',
+        textTransform: 'uppercase',
+        letterSpacing: '0.04em',
+        marginBottom: '0.4rem',
+        display: 'block'
+    };
+
     return (
-        <div className="container-fluid" style={{ background: "#f8fafc", minHeight: "100vh" }}>
-            {/* Header */}
-            <div className="mb-4">
-                <h2 className="fw-bold text-primary mb-1">
-                    <i className="bi bi-people-fill me-2"></i>
-                    User Management
-                </h2>
-                <p className="text-muted mb-0">Pendaftaran dan manajemen hak akses akun internal rumah sakit.</p>
+        <div className="sc-animate-in" style={{ padding: 0, minHeight: '100vh' }}>
+            {/* Page Header */}
+            <div className="sc-page-header" style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: '2rem',
+                flexWrap: 'wrap',
+                gap: '1rem'
+            }}>
+                <div>
+                    <h2 style={{
+                        fontSize: '1.75rem',
+                        fontWeight: '700',
+                        color: 'var(--sc-text-primary)',
+                        margin: '0 0 0.25rem 0',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.625rem'
+                    }}>
+                        <span style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '42px',
+                            height: '42px',
+                            borderRadius: 'var(--sc-radius-lg)',
+                            background: 'var(--sc-primary-gradient)',
+                            color: '#fff',
+                            fontSize: '1.15rem'
+                        }}>
+                            <i className="bi bi-people-fill"></i>
+                        </span>
+                        User Management
+                    </h2>
+                    <p style={{
+                        color: 'var(--sc-text-muted)',
+                        margin: 0,
+                        fontSize: '0.9rem',
+                        paddingLeft: '3.25rem'
+                    }}>
+                        Pendaftaran dan manajemen hak akses akun internal rumah sakit.
+                    </p>
+                </div>
             </div>
 
-            <div className="row justify-content-center">
-                <div className="col-lg-8">
-                    {/* Add User Card Form */}
-                    <div className="card shadow-sm border-0">
-                        <div className="card-header bg-white py-3 border-bottom">
-                            <h5 className="mb-0 fw-bold text-dark">
-                                <i className="bi bi-person-plus-fill me-2 text-primary"></i>
-                                Tambah User Baru
-                            </h5>
+            {/* Centered Form Card */}
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <div className="sc-animate-in sc-stagger-1 sc-card-accent-primary" style={{
+                    width: '100%',
+                    maxWidth: '800px',
+                    background: 'var(--sc-bg-card)',
+                    borderRadius: 'var(--sc-radius-xl)',
+                    border: '1px solid var(--sc-border)',
+                    boxShadow: 'var(--sc-shadow-md)',
+                    overflow: 'hidden'
+                }}>
+                    {/* Card Header */}
+                    <div style={{
+                        padding: '1.25rem 1.75rem',
+                        borderBottom: '1px solid var(--sc-border)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.625rem'
+                    }}>
+                        <div style={{
+                            width: '36px',
+                            height: '36px',
+                            borderRadius: 'var(--sc-radius-md)',
+                            background: 'rgba(var(--sc-primary-rgb, 99,102,241), 0.1)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'var(--sc-primary)',
+                            fontSize: '1rem'
+                        }}>
+                            <i className="bi bi-person-plus-fill"></i>
                         </div>
-                        <div className="card-body p-4">
-                            {/* Alert Notifications */}
-                            {errorMsg && (
-                                <div className="alert alert-danger d-flex align-items-center mb-4" role="alert">
-                                    <i className="bi bi-exclamation-triangle-fill me-2"></i>
-                                    <div>{errorMsg}</div>
+                        <h5 style={{
+                            margin: 0,
+                            fontWeight: '700',
+                            fontSize: '1.05rem',
+                            color: 'var(--sc-text-primary)'
+                        }}>
+                            Tambah User Baru
+                        </h5>
+                    </div>
+
+                    {/* Card Body */}
+                    <div style={{ padding: '1.75rem' }}>
+                        {/* Alert Messages */}
+                        {errorMsg && (
+                            <div className="sc-animate-in" style={{
+                                background: 'rgba(239,68,68,0.08)',
+                                border: '1px solid rgba(239,68,68,0.25)',
+                                borderRadius: 'var(--sc-radius-md)',
+                                padding: '0.875rem 1rem',
+                                marginBottom: '1.25rem',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.625rem',
+                                color: 'var(--sc-danger)',
+                                fontSize: '0.875rem'
+                            }}>
+                                <i className="bi bi-exclamation-triangle-fill" style={{ fontSize: '1rem' }}></i>
+                                <div style={{ fontWeight: '500' }}>{errorMsg}</div>
+                            </div>
+                        )}
+
+                        {successMsg && (
+                            <div className="sc-animate-in" style={{
+                                background: 'rgba(34,197,94,0.08)',
+                                border: '1px solid rgba(34,197,94,0.25)',
+                                borderRadius: 'var(--sc-radius-md)',
+                                padding: '0.875rem 1rem',
+                                marginBottom: '1.25rem',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.625rem',
+                                color: 'var(--sc-success)',
+                                fontSize: '0.875rem'
+                            }}>
+                                <i className="bi bi-check-circle-fill" style={{ fontSize: '1rem' }}></i>
+                                <div style={{ fontWeight: '500' }}>{successMsg}</div>
+                            </div>
+                        )}
+
+                        <form onSubmit={handleSubmit}>
+                            <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(2, 1fr)',
+                                gap: '1.25rem',
+                                marginBottom: '1.5rem'
+                            }}>
+                                {/* Full Name */}
+                                <div>
+                                    <label style={labelStyle}>Nama Lengkap</label>
+                                    <input
+                                        type="text"
+                                        name="name"
+                                        placeholder="Masukkan nama lengkap..."
+                                        value={formData.name}
+                                        onChange={handleChange}
+                                        required
+                                        style={inputStyle}
+                                        onFocus={(e) => { e.target.style.borderColor = 'var(--sc-primary)'; e.target.style.boxShadow = '0 0 0 3px rgba(var(--sc-primary-rgb,99,102,241),0.1)'; }}
+                                        onBlur={(e) => { e.target.style.borderColor = 'var(--sc-border)'; e.target.style.boxShadow = 'none'; }}
+                                    />
                                 </div>
-                            )}
 
-                            {successMsg && (
-                                <div className="alert alert-success d-flex align-items-center mb-4" role="alert">
-                                    <i className="bi bi-check-circle-fill me-2"></i>
-                                    <div>{successMsg}</div>
+                                {/* Username */}
+                                <div>
+                                    <label style={labelStyle}>Username</label>
+                                    <input
+                                        type="text"
+                                        name="username"
+                                        placeholder="Masukkan username..."
+                                        value={formData.username}
+                                        onChange={handleChange}
+                                        required
+                                        style={inputStyle}
+                                        onFocus={(e) => { e.target.style.borderColor = 'var(--sc-primary)'; e.target.style.boxShadow = '0 0 0 3px rgba(var(--sc-primary-rgb,99,102,241),0.1)'; }}
+                                        onBlur={(e) => { e.target.style.borderColor = 'var(--sc-border)'; e.target.style.boxShadow = 'none'; }}
+                                    />
                                 </div>
-                            )}
 
-                            <form onSubmit={handleSubmit}>
-                                <div className="row g-3 mb-4">
-                                    {/* Full Name */}
-                                    <div className="col-md-6">
-                                        <label className="form-label fw-semibold text-dark small">Nama Lengkap</label>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            name="name"
-                                            placeholder="Masukkan nama lengkap..."
-                                            value={formData.name}
-                                            onChange={handleChange}
-                                            required
-                                        />
-                                    </div>
+                                {/* Email */}
+                                <div>
+                                    <label style={labelStyle}>Email</label>
+                                    <input
+                                        type="email"
+                                        name="email"
+                                        placeholder="contoh@rs.com"
+                                        value={formData.email}
+                                        onChange={handleChange}
+                                        required
+                                        style={inputStyle}
+                                        onFocus={(e) => { e.target.style.borderColor = 'var(--sc-primary)'; e.target.style.boxShadow = '0 0 0 3px rgba(var(--sc-primary-rgb,99,102,241),0.1)'; }}
+                                        onBlur={(e) => { e.target.style.borderColor = 'var(--sc-border)'; e.target.style.boxShadow = 'none'; }}
+                                    />
+                                </div>
 
-                                    {/* Username */}
-                                    <div className="col-md-6">
-                                        <label className="form-label fw-semibold text-dark small">Username</label>
+                                {/* Password with show/hide toggle */}
+                                <div>
+                                    <label style={labelStyle}>Password (Min 8 karakter)</label>
+                                    <div style={{ position: 'relative' }}>
                                         <input
-                                            type="text"
-                                            className="form-control"
-                                            name="username"
-                                            placeholder="Masukkan username..."
-                                            value={formData.username}
-                                            onChange={handleChange}
-                                            required
-                                        />
-                                    </div>
-
-                                    {/* Email */}
-                                    <div className="col-md-6">
-                                        <label className="form-label fw-semibold text-dark small">Email</label>
-                                        <input
-                                            type="email"
-                                            className="form-control"
-                                            name="email"
-                                            placeholder="contoh@rs.com"
-                                            value={formData.email}
-                                            onChange={handleChange}
-                                            required
-                                        />
-                                    </div>
-
-                                    {/* Password */}
-                                    <div className="col-md-6">
-                                        <label className="form-label fw-semibold text-dark small">Password (Min 8 karakter)</label>
-                                        <input
-                                            type="password"
-                                            className="form-control"
+                                            type={showPassword ? "text" : "password"}
                                             name="password"
                                             placeholder="Masukkan password..."
                                             value={formData.password}
                                             onChange={handleChange}
                                             required
+                                            style={{ ...inputStyle, paddingRight: '2.75rem' }}
+                                            onFocus={(e) => { e.target.style.borderColor = 'var(--sc-primary)'; e.target.style.boxShadow = '0 0 0 3px rgba(var(--sc-primary-rgb,99,102,241),0.1)'; }}
+                                            onBlur={(e) => { e.target.style.borderColor = 'var(--sc-border)'; e.target.style.boxShadow = 'none'; }}
                                         />
-                                    </div>
-
-                                    {/* Hospital selection dropdown */}
-                                    <div className="col-md-6">
-                                        <label className="form-label fw-semibold text-dark small">Rumah Sakit</label>
-                                        <select
-                                            className="form-select"
-                                            name="rs_id"
-                                            value={formData.rs_id}
-                                            onChange={handleChange}
-                                            required
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            style={{
+                                                position: 'absolute',
+                                                right: '0.5rem',
+                                                top: '50%',
+                                                transform: 'translateY(-50%)',
+                                                background: 'none',
+                                                border: 'none',
+                                                cursor: 'pointer',
+                                                color: 'var(--sc-text-muted)',
+                                                padding: '0.25rem',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                fontSize: '1rem'
+                                            }}
                                         >
-                                            <option value="">-- Pilih Rumah Sakit --</option>
-                                            {staticHospitals.map(h => (
-                                                <option key={h.id} value={h.id}>{h.name}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-
-                                    {/* Department selection dropdown */}
-                                    <div className="col-md-6">
-                                        <label className="form-label fw-semibold text-dark small">Departemen / Poli</label>
-                                        <select
-                                            className="form-select"
-                                            name="department_id"
-                                            value={formData.department_id}
-                                            onChange={handleChange}
-                                            required
-                                        >
-                                            <option value="">-- Pilih Departemen --</option>
-                                            {staticDepartments.map(d => (
-                                                <option key={d.id} value={d.id}>{d.name}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-
-                                    {/* Hospital Code (Auto-filled / Locked read-only) */}
-                                    <div className="col-12">
-                                        <label className="form-label fw-semibold text-dark small">Kode Registrasi Rumah Sakit (BPJS Code)</label>
-                                        <input
-                                            type="text"
-                                            className="form-control bg-light"
-                                            name="hospital_code"
-                                            placeholder="Otomatis terisi..."
-                                            value={formData.hospital_code}
-                                            readOnly
-                                            required
-                                        />
-                                        <small className="text-muted d-block mt-1">Kode ini terisi otomatis saat Anda memilih instansi Rumah Sakit.</small>
+                                            <i className={showPassword ? "bi bi-eye-slash" : "bi bi-eye"}></i>
+                                        </button>
                                     </div>
                                 </div>
 
-                                <div className="border-top pt-3 d-flex justify-content-end gap-2">
-                                    <button
-                                        type="submit"
-                                        className="btn btn-primary px-4 py-2"
-                                        disabled={loading}
+                                {/* Hospital selection dropdown */}
+                                <div>
+                                    <label style={labelStyle}>Rumah Sakit</label>
+                                    <select
+                                        name="rs_id"
+                                        value={formData.rs_id}
+                                        onChange={handleChange}
+                                        required
+                                        style={inputStyle}
+                                        onFocus={(e) => { e.target.style.borderColor = 'var(--sc-primary)'; e.target.style.boxShadow = '0 0 0 3px rgba(var(--sc-primary-rgb,99,102,241),0.1)'; }}
+                                        onBlur={(e) => { e.target.style.borderColor = 'var(--sc-border)'; e.target.style.boxShadow = 'none'; }}
                                     >
-                                        {loading ? (
-                                            <>
-                                                <span className="spinner-border spinner-border-sm me-2" role="status"></span>
-                                                Mendaftarkan...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <i className="bi bi-person-plus-fill me-2"></i>
-                                                Daftarkan User Baru
-                                            </>
-                                        )}
-                                    </button>
+                                        <option value="">-- Pilih Rumah Sakit --</option>
+                                        {staticHospitals.map(h => (
+                                            <option key={h.id} value={h.id}>{h.name}</option>
+                                        ))}
+                                    </select>
                                 </div>
-                            </form>
-                        </div>
+
+                                {/* Department selection dropdown */}
+                                <div>
+                                    <label style={labelStyle}>Departemen / Poli</label>
+                                    <select
+                                        name="department_id"
+                                        value={formData.department_id}
+                                        onChange={handleChange}
+                                        required
+                                        style={inputStyle}
+                                        onFocus={(e) => { e.target.style.borderColor = 'var(--sc-primary)'; e.target.style.boxShadow = '0 0 0 3px rgba(var(--sc-primary-rgb,99,102,241),0.1)'; }}
+                                        onBlur={(e) => { e.target.style.borderColor = 'var(--sc-border)'; e.target.style.boxShadow = 'none'; }}
+                                    >
+                                        <option value="">-- Pilih Departemen --</option>
+                                        {staticDepartments.map(d => (
+                                            <option key={d.id} value={d.id}>{d.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Hospital Code (Auto-filled / Locked read-only) - Full width */}
+                                <div style={{ gridColumn: '1 / -1' }}>
+                                    <label style={labelStyle}>Kode Registrasi Rumah Sakit (BPJS Code)</label>
+                                    <input
+                                        type="text"
+                                        name="hospital_code"
+                                        placeholder="Otomatis terisi..."
+                                        value={formData.hospital_code}
+                                        readOnly
+                                        required
+                                        style={{
+                                            ...inputStyle,
+                                            background: 'var(--sc-bg)',
+                                            cursor: 'not-allowed',
+                                            opacity: 0.8
+                                        }}
+                                    />
+                                    <small style={{
+                                        color: 'var(--sc-text-muted)',
+                                        fontSize: '0.75rem',
+                                        marginTop: '0.35rem',
+                                        display: 'block'
+                                    }}>
+                                        Kode ini terisi otomatis saat Anda memilih instansi Rumah Sakit.
+                                    </small>
+                                </div>
+                            </div>
+
+                            {/* Submit Button */}
+                            <div style={{
+                                borderTop: '1px solid var(--sc-border)',
+                                paddingTop: '1.25rem',
+                                display: 'flex',
+                                justifyContent: 'flex-end'
+                            }}>
+                                <button
+                                    type="submit"
+                                    className="sc-hover-lift"
+                                    disabled={loading}
+                                    style={{
+                                        background: loading ? 'var(--sc-text-muted)' : 'var(--sc-primary-gradient)',
+                                        color: '#fff',
+                                        border: 'none',
+                                        borderRadius: 'var(--sc-radius-md)',
+                                        padding: '0.7rem 2rem',
+                                        fontWeight: '600',
+                                        fontSize: '0.9rem',
+                                        cursor: loading ? 'not-allowed' : 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                        boxShadow: 'var(--sc-shadow-sm)',
+                                        transition: 'all 0.2s ease'
+                                    }}
+                                >
+                                    {loading ? (
+                                        <>
+                                            <span className="spinner-border spinner-border-sm" role="status" style={{ width: '1rem', height: '1rem' }}></span>
+                                            Mendaftarkan...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <i className="bi bi-person-plus-fill"></i>
+                                            Daftarkan User Baru
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>

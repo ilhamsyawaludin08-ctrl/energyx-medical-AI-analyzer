@@ -1,60 +1,1009 @@
-/* Reset */
+/* ============================================================
+   BPJS Safe Claim — Enterprise Design System
+   Modern Healthcare Dashboard CSS
+   ============================================================ */
 
+/* ---- CSS Custom Properties (Design Tokens) ---- */
+:root {
+  /* Primary Palette */
+  --sc-primary: #2563EB;
+  --sc-primary-hover: #1d4ed8;
+  --sc-primary-light: #dbeafe;
+  --sc-primary-subtle: #eff6ff;
+  --sc-primary-gradient: linear-gradient(135deg, #2563EB 0%, #1e40af 100%);
+
+  /* Secondary */
+  --sc-secondary: #0F172A;
+  --sc-secondary-hover: #1e293b;
+
+  /* Semantic Colors */
+  --sc-success: #22C55E;
+  --sc-success-hover: #16a34a;
+  --sc-success-light: #dcfce7;
+  --sc-success-subtle: #f0fdf4;
+
+  --sc-warning: #F59E0B;
+  --sc-warning-hover: #d97706;
+  --sc-warning-light: #fef3c7;
+  --sc-warning-subtle: #fffbeb;
+
+  --sc-danger: #EF4444;
+  --sc-danger-hover: #dc2626;
+  --sc-danger-light: #fee2e2;
+  --sc-danger-subtle: #fef2f2;
+
+  --sc-info: #06B6D4;
+  --sc-info-hover: #0891b2;
+  --sc-info-light: #cffafe;
+  --sc-info-subtle: #ecfeff;
+
+  /* Neutrals */
+  --sc-bg: #F8FAFC;
+  --sc-bg-card: #FFFFFF;
+  --sc-border: #E5E7EB;
+  --sc-border-light: #F3F4F6;
+  --sc-text-primary: #111827;
+  --sc-text-secondary: #6B7280;
+  --sc-text-muted: #9CA3AF;
+
+  /* Sidebar */
+  --sc-sidebar-bg: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+  --sc-sidebar-width: 272px;
+  --sc-sidebar-text: #cbd5e1;
+  --sc-sidebar-active: rgba(37, 99, 235, 0.15);
+
+  /* Radius */
+  --sc-radius-sm: 8px;
+  --sc-radius-md: 12px;
+  --sc-radius-lg: 16px;
+  --sc-radius-xl: 20px;
+  --sc-radius-pill: 100px;
+
+  /* Shadows */
+  --sc-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --sc-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --sc-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --sc-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+  --sc-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+  --sc-shadow-hover: 0 8px 25px rgba(37, 99, 235, 0.12);
+
+  /* Transitions */
+  --sc-transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --sc-transition-slow: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Typography */
+  --sc-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --sc-font-xs: 0.75rem;
+  --sc-font-sm: 0.8125rem;
+  --sc-font-base: 0.875rem;
+  --sc-font-md: 1rem;
+  --sc-font-lg: 1.125rem;
+  --sc-font-xl: 1.25rem;
+  --sc-font-2xl: 1.5rem;
+  --sc-font-3xl: 1.875rem;
+}
+
+
+/* ---- Global Reset & Base ---- */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-/* Full Screen */
-
-html,
-body,
-#root {
+html, body, #root {
   width: 100%;
   min-height: 100vh;
 }
 
-/* Body */
-
 body {
-  font-family: "Inter", sans-serif;
-  background: #f8fafc;
-  color: #1f2937;
+  font-family: var(--sc-font);
+  font-size: var(--sc-font-base);
+  background: var(--sc-bg);
+  color: var(--sc-text-primary);
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
 }
-
-/* Link */
 
 a {
   text-decoration: none;
   color: inherit;
 }
 
-/* Image */
-
 img {
   max-width: 100%;
   display: block;
 }
 
-/* Button */
-
 button {
   cursor: pointer;
+  font-family: var(--sc-font);
 }
 
-/* Scrollbar */
 
+/* ---- Custom Scrollbar ---- */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #d1d5db;
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #9ca3af;
+}
+
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+@keyframes sc-fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes sc-fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes sc-slideInLeft {
+  from { opacity: 0; transform: translateX(-16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes sc-scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes sc-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes sc-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes sc-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes sc-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.sc-animate-in {
+  animation: sc-fadeIn 0.4s ease-out both;
+}
+
+.sc-animate-up {
+  animation: sc-fadeInUp 0.5s ease-out both;
+}
+
+.sc-animate-scale {
+  animation: sc-scaleIn 0.3s ease-out both;
+}
+
+.sc-stagger-1 { animation-delay: 0.05s; }
+.sc-stagger-2 { animation-delay: 0.1s; }
+.sc-stagger-3 { animation-delay: 0.15s; }
+.sc-stagger-4 { animation-delay: 0.2s; }
+.sc-stagger-5 { animation-delay: 0.25s; }
+
+
+/* ============================================================
+   BOOTSTRAP OVERRIDES — Cards
+   ============================================================ */
+.card {
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-lg) !important;
+  box-shadow: var(--sc-shadow-sm);
+  background: var(--sc-bg-card);
+  transition: var(--sc-transition);
+  overflow: hidden;
+}
+
+.card:hover {
+  box-shadow: var(--sc-shadow-md);
+}
+
+.card-header {
+  background: var(--sc-bg-card) !important;
+  border-bottom: 1px solid var(--sc-border-light);
+  padding: 1.25rem 1.5rem;
+  font-weight: 600;
+}
+
+.card-body {
+  padding: 1.5rem;
+}
+
+.card-header h5,
+.card-header h6 {
+  font-weight: 700;
+  font-size: var(--sc-font-base);
+  color: var(--sc-text-primary);
+  letter-spacing: -0.01em;
+}
+
+
+/* ============================================================
+   BOOTSTRAP OVERRIDES — Buttons
+   ============================================================ */
+.btn {
+  font-family: var(--sc-font);
+  font-weight: 500;
+  font-size: var(--sc-font-base);
+  border-radius: var(--sc-radius-sm);
+  padding: 0.5rem 1.125rem;
+  transition: var(--sc-transition);
+  border: none;
+  letter-spacing: -0.01em;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn-primary {
+  background: var(--sc-primary-gradient) !important;
+  border: none !important;
+  color: #fff !important;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #22C55E 0%, #16a34a 100%) !important;
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.25);
+}
+
+.btn-success:hover {
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(34, 197, 94, 0.35);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #EF4444 0%, #dc2626 100%) !important;
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25);
+}
+
+.btn-danger:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+}
+
+.btn-outline-primary {
+  color: var(--sc-primary) !important;
+  border: 1.5px solid var(--sc-primary) !important;
+  background: transparent !important;
+}
+
+.btn-outline-primary:hover {
+  background: var(--sc-primary-subtle) !important;
+  color: var(--sc-primary-hover) !important;
+  transform: translateY(-1px);
+}
+
+.btn-outline-success {
+  color: var(--sc-success) !important;
+  border: 1.5px solid var(--sc-success) !important;
+  background: transparent !important;
+}
+
+.btn-outline-success:hover {
+  background: var(--sc-success-subtle) !important;
+  transform: translateY(-1px);
+}
+
+.btn-outline-dark {
+  color: var(--sc-text-primary) !important;
+  border: 1.5px solid var(--sc-border) !important;
+  background: transparent !important;
+}
+
+.btn-outline-dark:hover {
+  background: var(--sc-bg) !important;
+  border-color: var(--sc-text-secondary) !important;
+  transform: translateY(-1px);
+}
+
+.btn-outline-secondary {
+  color: var(--sc-text-secondary) !important;
+  border: 1.5px solid var(--sc-border) !important;
+  background: transparent !important;
+}
+
+.btn-outline-secondary:hover {
+  background: var(--sc-bg) !important;
+  color: var(--sc-text-primary) !important;
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: #e5e7eb !important;
+  color: var(--sc-text-primary) !important;
+  border: none !important;
+}
+
+.btn-secondary:hover {
+  background: #d1d5db !important;
+}
+
+.btn-lg {
+  padding: 0.75rem 1.5rem;
+  font-size: var(--sc-font-md);
+  border-radius: var(--sc-radius-md);
+}
+
+
+/* ============================================================
+   BOOTSTRAP OVERRIDES — Forms
+   ============================================================ */
+.form-control,
+.form-select {
+  font-family: var(--sc-font);
+  font-size: var(--sc-font-base);
+  border: 1.5px solid var(--sc-border);
+  border-radius: var(--sc-radius-sm);
+  padding: 0.625rem 0.875rem;
+  color: var(--sc-text-primary);
+  background: var(--sc-bg-card);
+  transition: var(--sc-transition);
+  height: auto;
+  min-height: 42px;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--sc-primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  outline: none;
+}
+
+.form-control::placeholder {
+  color: var(--sc-text-muted);
+  font-size: var(--sc-font-sm);
+}
+
+.form-label {
+  font-weight: 600;
+  font-size: var(--sc-font-sm);
+  color: var(--sc-text-primary);
+  margin-bottom: 0.375rem;
+  letter-spacing: -0.01em;
+}
+
+.form-check-input {
+  width: 1.125rem;
+  height: 1.125rem;
+  border: 2px solid var(--sc-border);
+  border-radius: 4px;
+  transition: var(--sc-transition);
+  cursor: pointer;
+}
+
+.form-check-input:checked {
+  background-color: var(--sc-primary);
+  border-color: var(--sc-primary);
+}
+
+.form-check-input:focus {
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.form-check-label {
+  font-size: var(--sc-font-base);
+  cursor: pointer;
+  padding-left: 0.25rem;
+}
+
+.input-group .form-control {
+  border-right: none;
+}
+
+.input-group .btn,
+.input-group .input-group-text {
+  border-radius: 0 var(--sc-radius-sm) var(--sc-radius-sm) 0;
+}
+
+textarea.form-control {
+  min-height: 80px;
+  resize: vertical;
+}
+
+
+/* ============================================================
+   BOOTSTRAP OVERRIDES — Tables
+   ============================================================ */
+.table {
+  font-size: var(--sc-font-base);
+  margin-bottom: 0;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.table thead th {
+  background: var(--sc-bg) !important;
+  color: var(--sc-text-secondary);
+  font-weight: 600;
+  font-size: var(--sc-font-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.875rem 1rem;
+  border-bottom: 2px solid var(--sc-border);
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.table tbody td {
+  padding: 0.875rem 1rem;
+  vertical-align: middle;
+  color: var(--sc-text-primary);
+  border-bottom: 1px solid var(--sc-border-light);
+  font-size: var(--sc-font-sm);
+}
+
+.table tbody tr {
+  transition: var(--sc-transition);
+}
+
+.table tbody tr:nth-child(even) {
+  background: rgba(248, 250, 252, 0.5);
+}
+
+.table tbody tr:hover {
+  background: var(--sc-primary-subtle) !important;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table-responsive {
+  border-radius: var(--sc-radius-md);
+  border: 1px solid var(--sc-border-light);
+  overflow: hidden;
+}
+
+
+/* ============================================================
+   BOOTSTRAP OVERRIDES — Badges
+   ============================================================ */
+.badge {
+  font-family: var(--sc-font);
+  font-weight: 600;
+  font-size: var(--sc-font-xs);
+  padding: 0.3em 0.7em;
+  border-radius: var(--sc-radius-pill);
+  letter-spacing: 0.02em;
+}
+
+.bg-success {
+  background-color: var(--sc-success) !important;
+}
+
+.bg-warning {
+  background-color: var(--sc-warning) !important;
+}
+
+.bg-danger {
+  background-color: var(--sc-danger) !important;
+}
+
+.bg-info {
+  background-color: var(--sc-info) !important;
+}
+
+.bg-success-subtle {
+  background-color: var(--sc-success-light) !important;
+}
+
+.bg-danger-subtle {
+  background-color: var(--sc-danger-light) !important;
+}
+
+.bg-warning-subtle {
+  background-color: var(--sc-warning-light) !important;
+}
+
+
+/* ============================================================
+   BOOTSTRAP OVERRIDES — Alerts
+   ============================================================ */
+.alert {
+  border: none;
+  border-radius: var(--sc-radius-md);
+  font-size: var(--sc-font-sm);
+  padding: 1rem 1.25rem;
+  line-height: 1.5;
+}
+
+.alert-success {
+  background: var(--sc-success-subtle);
+  color: #166534;
+  border-left: 4px solid var(--sc-success);
+}
+
+.alert-danger {
+  background: var(--sc-danger-subtle);
+  color: #991b1b;
+  border-left: 4px solid var(--sc-danger);
+}
+
+.alert-warning {
+  background: var(--sc-warning-subtle);
+  color: #92400e;
+  border-left: 4px solid var(--sc-warning);
+}
+
+.alert-info {
+  background: var(--sc-info-subtle);
+  color: #155e75;
+  border-left: 4px solid var(--sc-info);
+}
+
+.alert-primary {
+  background: var(--sc-primary-subtle);
+  color: #1e3a8a;
+  border-left: 4px solid var(--sc-primary);
+}
+
+
+/* ============================================================
+   BOOTSTRAP OVERRIDES — Modals
+   ============================================================ */
+.modal-content {
+  border: none;
+  border-radius: var(--sc-radius-xl);
+  box-shadow: var(--sc-shadow-xl);
+  overflow: hidden;
+}
+
+.modal-header {
+  border-bottom: 1px solid var(--sc-border-light);
+  padding: 1.25rem 1.5rem;
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.modal-footer {
+  border-top: 1px solid var(--sc-border-light);
+  padding: 1rem 1.5rem;
+}
+
+.modal-backdrop {
+  backdrop-filter: blur(4px);
+}
+
+
+/* ============================================================
+   BOOTSTRAP OVERRIDES — Pagination
+   ============================================================ */
+.pagination {
+  gap: 4px;
+}
+
+.page-link {
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-sm) !important;
+  color: var(--sc-text-secondary);
+  font-size: var(--sc-font-sm);
+  font-weight: 500;
+  padding: 0.4rem 0.75rem;
+  transition: var(--sc-transition);
+  min-width: 36px;
+  text-align: center;
+}
+
+.page-link:hover {
+  background: var(--sc-primary-subtle);
+  color: var(--sc-primary);
+  border-color: var(--sc-primary);
+}
+
+.page-item.active .page-link {
+  background: var(--sc-primary-gradient);
+  border-color: var(--sc-primary);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+}
+
+.page-item.disabled .page-link {
+  background: var(--sc-bg);
+  color: var(--sc-text-muted);
+}
+
+
+/* ============================================================
+   BOOTSTRAP OVERRIDES — Progress
+   ============================================================ */
+.progress {
+  height: 8px;
+  border-radius: var(--sc-radius-pill);
+  background: var(--sc-border-light);
+  overflow: hidden;
+}
+
+.progress-bar {
+  border-radius: var(--sc-radius-pill);
+  transition: width 0.6s ease;
+}
+
+
+/* ============================================================
+   BOOTSTRAP OVERRIDES — List Group
+   ============================================================ */
+.list-group-item {
+  border-color: var(--sc-border-light);
+  font-size: var(--sc-font-sm);
+  padding: 0.875rem 1rem;
+  transition: var(--sc-transition);
+}
+
+.list-group-item:hover {
+  background: var(--sc-bg);
+}
+
+
+/* ============================================================
+   CUSTOM UTILITY — Page Header
+   ============================================================ */
+.sc-page-header {
+  margin-bottom: 1.75rem;
+  animation: sc-fadeIn 0.4s ease-out;
+}
+
+.sc-page-header h2 {
+  font-weight: 800;
+  font-size: var(--sc-font-2xl);
+  color: var(--sc-text-primary);
+  letter-spacing: -0.025em;
+  margin-bottom: 0.25rem;
+}
+
+.sc-page-header p {
+  font-size: var(--sc-font-sm);
+  color: var(--sc-text-secondary);
+  margin-bottom: 0;
+}
+
+
+/* ============================================================
+   CUSTOM UTILITY — Hover Effects
+   ============================================================ */
+.sc-hover-lift {
+  transition: var(--sc-transition);
+}
+
+.sc-hover-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--sc-shadow-lg);
+}
+
+.sc-hover-border:hover {
+  border-color: var(--sc-primary) !important;
+}
+
+.sc-hover-glow:hover {
+  box-shadow: var(--sc-shadow-hover);
+}
+
+
+/* ============================================================
+   CUSTOM UTILITY — Empty State
+   ============================================================ */
+.sc-empty-state {
+  text-align: center;
+  padding: 3rem 2rem;
+  animation: sc-fadeIn 0.5s ease-out;
+}
+
+.sc-empty-state .sc-empty-icon {
+  font-size: 3.5rem;
+  color: var(--sc-text-muted);
+  margin-bottom: 1rem;
+  display: block;
+  opacity: 0.5;
+}
+
+.sc-empty-state h5 {
+  font-weight: 700;
+  color: var(--sc-text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.sc-empty-state p {
+  color: var(--sc-text-secondary);
+  font-size: var(--sc-font-sm);
+  max-width: 360px;
+  margin: 0 auto;
+}
+
+
+/* ============================================================
+   CUSTOM UTILITY — Skeleton Loading
+   ============================================================ */
+.sc-skeleton {
+  background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+  background-size: 400% 100%;
+  animation: sc-shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--sc-radius-sm);
+}
+
+.sc-skeleton-text {
+  height: 14px;
+  margin-bottom: 8px;
+  width: 100%;
+}
+
+.sc-skeleton-title {
+  height: 24px;
+  width: 60%;
+  margin-bottom: 12px;
+}
+
+.sc-skeleton-card {
+  height: 120px;
+  border-radius: var(--sc-radius-lg);
+}
+
+.sc-skeleton-circle {
+  border-radius: 50%;
+}
+
+
+/* ============================================================
+   CUSTOM UTILITY — Stat / Metric Cards
+   ============================================================ */
+.sc-stat-card {
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius-lg);
+  padding: 1.5rem;
+  background: var(--sc-bg-card);
+  transition: var(--sc-transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.sc-stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--sc-primary-gradient);
+  opacity: 0;
+  transition: var(--sc-transition);
+}
+
+.sc-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sc-shadow-lg);
+  border-color: rgba(37, 99, 235, 0.2);
+}
+
+.sc-stat-card:hover::before {
+  opacity: 1;
+}
+
+.sc-stat-card .sc-stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--sc-radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+.sc-stat-card .sc-stat-value {
+  font-size: var(--sc-font-2xl);
+  font-weight: 800;
+  color: var(--sc-text-primary);
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+.sc-stat-card .sc-stat-label {
+  font-size: var(--sc-font-xs);
+  font-weight: 600;
+  color: var(--sc-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.sc-stat-card .sc-stat-subtitle {
+  font-size: var(--sc-font-xs);
+  color: var(--sc-text-muted);
+  margin-top: 0.25rem;
+}
+
+
+/* ============================================================
+   CUSTOM UTILITY — Accent Cards
+   ============================================================ */
+.sc-card-accent-primary {
+  border-left: 4px solid var(--sc-primary) !important;
+}
+
+.sc-card-accent-success {
+  border-left: 4px solid var(--sc-success) !important;
+}
+
+.sc-card-accent-warning {
+  border-left: 4px solid var(--sc-warning) !important;
+}
+
+.sc-card-accent-danger {
+  border-left: 4px solid var(--sc-danger) !important;
+}
+
+.sc-card-accent-info {
+  border-left: 4px solid var(--sc-info) !important;
+}
+
+
+/* ============================================================
+   CUSTOM — Glassmorphism Subtle
+   ============================================================ */
+.sc-glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+
+/* ============================================================
+   CUSTOM — Tag / Pill styles
+   ============================================================ */
+.sc-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--sc-radius-pill);
+  font-size: var(--sc-font-xs);
+  font-weight: 600;
+}
+
+.sc-pill-primary {
+  background: var(--sc-primary-light);
+  color: var(--sc-primary);
+}
+
+.sc-pill-success {
+  background: var(--sc-success-light);
+  color: #166534;
+}
+
+.sc-pill-warning {
+  background: var(--sc-warning-light);
+  color: #92400e;
+}
+
+.sc-pill-danger {
+  background: var(--sc-danger-light);
+  color: #991b1b;
+}
+
+.sc-pill-info {
+  background: var(--sc-info-light);
+  color: #155e75;
+}
+
+
+/* ============================================================
+   CUSTOM — Section Headers
+   ============================================================ */
+.sc-section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  font-weight: 700;
+  font-size: var(--sc-font-base);
+  color: var(--sc-text-primary);
+  margin-bottom: 0;
+  letter-spacing: -0.01em;
+}
+
+.sc-section-header i {
+  font-size: 1.125rem;
+}
+
+
+/* ============================================================
+   RESPONSIVE — Tablet adjustments
+   ============================================================ */
+@media (max-width: 991.98px) {
+  :root {
+    --sc-sidebar-width: 220px;
+  }
+
+  .sc-stat-card {
+    padding: 1.125rem;
+  }
+
+  .sc-stat-card .sc-stat-value {
+    font-size: var(--sc-font-xl);
+  }
+}
+
+@media (max-width: 767.98px) {
+  .card-body {
+    padding: 1rem;
+  }
+
+  .card-header {
+    padding: 1rem;
+  }
+
+  .sc-page-header h2 {
+    font-size: var(--sc-font-xl);
+  }
+
+  .table thead th,
+  .table tbody td {
+    padding: 0.625rem 0.75rem;
+  }
+}
+
+
+/* ============================================================
+   UTILITY TEXT HELPERS
+   ============================================================ */
+.text-primary {
+  color: var(--sc-primary) !important;
+}
+
+.text-success {
+  color: var(--sc-success) !important;
+}
+
+.text-warning {
+  color: var(--sc-warning) !important;
+}
+
+.text-danger {
+  color: var(--sc-danger) !important;
+}
+
+.text-info {
+  color: var(--sc-info) !important;
+}
+
+.sc-text-gradient {
+  background: var(--sc-primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }

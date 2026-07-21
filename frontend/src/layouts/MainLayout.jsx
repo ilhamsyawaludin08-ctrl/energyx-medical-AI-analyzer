@@ -14,7 +14,7 @@ export default function MainLayout({ children }) {
                 className="d-flex flex-column flex-grow-1"
                 style={{
                     height: "100vh",
-                    background: "#f8fafc",
+                    background: "var(--sc-bg)",
                     overflow: "hidden"
                 }}
             >
@@ -22,7 +22,7 @@ export default function MainLayout({ children }) {
                 <Navbar />
 
                 {/* Independent Scrollable Content Area */}
-                <div className="flex-grow-1 p-4" style={{ overflowY: "auto" }}>
+                <div className="flex-grow-1 p-4 sc-animate-in" style={{ overflowY: "auto" }}>
                     {children}
                 </div>
             </div>

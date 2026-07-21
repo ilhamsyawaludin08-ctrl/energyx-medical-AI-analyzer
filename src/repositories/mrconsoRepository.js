@@ -1,5 +1,5 @@
 const { Op } = require('sequelize');
-const { Mrconso } = require("../models")
+const { Mrconso, MasterDiagnosis, AiDiagnosis, AiTreatment } = require("../models")
 
 const getTreatment = async (req) => {
   const page = parseInt(req.query.pageTreatment) || 1;
@@ -72,6 +72,9 @@ const getMrconso = async (req) => {
   const page = parseInt(req.query.page) || 1
   const limit = parseInt(req.query.limit) || 10
   const offset = (page - 1) * limit
+  const sortBy = req.query.sortBy || 'code'
+  const sortDesc = req.query.sortDesc === 'true'
+  const order = sortDesc ? 'DESC' : 'ASC'
 
   const whereCondition = {}
 
@@ -96,7 +99,7 @@ const getMrconso = async (req) => {
     where: whereCondition,
     limit,
     offset,
-    order: [['code', 'ASC']]
+    order: [[sortBy, order]]
   })
 
   return {
@@ -179,7 +182,53 @@ const updateStrMRConso = async (strList) => {
   );
 };
 
+const createMrconso = async (data) => {
+    return await Mrconso.create(data);
+}
 
+const updateMrconso = async (code, data) => {
+    const record = await Mrconso.findByPk(code);
+    if (!record) {
+        const error = new Error('Data ICD tidak ditemukan');
+        error.statusCode = 404;
+        throw error;
+    }
+    return await record.update(data);
+}
+
+const deleteMrconso = async (code) => {
+    const record = await Mrconso.findByPk(code);
+    if (!record) {
+        const error = new Error('Data ICD tidak ditemukan');
+        error.statusCode = 404;
+        throw error;
+    }
+
+    // Safety checks
+    const isUsedInMasterDiagnosis = await MasterDiagnosis.findOne({ where: { icd10_code: code } });
+    if (isUsedInMasterDiagnosis) {
+        const error = new Error('Data tidak dapat dihapus karena masih digunakan di MasterDiagnosis');
+        error.statusCode = 400;
+        throw error;
+    }
+
+    const isUsedInAiDiagnosis = await AiDiagnosis.findOne({ where: { code: code } });
+    if (isUsedInAiDiagnosis) {
+        const error = new Error('Data tidak dapat dihapus karena masih digunakan di AiDiagnosis');
+        error.statusCode = 400;
+        throw error;
+    }
+
+    const isUsedInAiTreatment = await AiTreatment.findOne({ where: { code: code } });
+    if (isUsedInAiTreatment) {
+        const error = new Error('Data tidak dapat dihapus karena masih digunakan di AiTreatment');
+        error.statusCode = 400;
+        throw error;
+    }
+
+    await record.destroy();
+    return true;
+}
 
 module.exports = {
   getTreatment,
@@ -188,5 +237,8 @@ module.exports = {
   getMrconsoStr,
   updateStrMRConso,
   getMrconsoStrIndo,
-  getMrconsoIndo
+  getMrconsoIndo,
+  createMrconso,
+  updateMrconso,
+  deleteMrconso
 }

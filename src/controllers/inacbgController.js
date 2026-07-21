@@ -1,13 +1,13 @@
 const { ApiResponse } = require('../utils/apiResponse');
-const mrconsoService = require("../services/mrconsoService")
+const inacbgService = require("../services/inacbgService")
 const handleError = require('../monitor/errorHandler');
 
-exports.getMrconso = async (req, res) => {
+exports.getInacbg = async (req, res) => {
     try {
-        const result = await mrconsoService.getMrconso(req)
+        const result = await inacbgService.getInacbg(req)
         
         return new ApiResponse(res)
-            .success('Daftar mrconso berhasil diambil')
+            .success('Daftar INA-CBG berhasil diambil')
             .data(result)
             .send();
     } catch (error) {
@@ -24,35 +24,13 @@ exports.getMrconso = async (req, res) => {
     }
 }
 
-exports.getMrconsoIndo = async (req, res) => {
+exports.createInacbg = async (req, res) => {
     try {
-        const result = await mrconsoService.getMrconsoIndo(req)
-        
-        return new ApiResponse(res)
-            .success('Daftar mrconso berhasil diambil')
-            .data(result)
-            .send();
-    } catch (error) {
-        handleError('error', {
-            type: error.name,
-            message: error.message,
-            stack: error.stack
-        });
-        
-        return new ApiResponse(res)
-            .status(error.statusCode || 500)
-            .error(error.message || 'Terjadi kesalahan pada server')
-            .send();
-    }
-}
-
-exports.createMrconso = async (req, res) => {
-    try {
-        const result = await mrconsoService.createMrconso(req)
+        const result = await inacbgService.createInacbg(req)
         
         return new ApiResponse(res)
             .status(201)
-            .success('Data ICD berhasil dibuat')
+            .success('Data INA-CBG berhasil dibuat')
             .data(result)
             .send();
     } catch (error) {
@@ -69,12 +47,12 @@ exports.createMrconso = async (req, res) => {
     }
 }
 
-exports.updateMrconso = async (req, res) => {
+exports.updateInacbg = async (req, res) => {
     try {
-        const result = await mrconsoService.updateMrconso(req)
+        const result = await inacbgService.updateInacbg(req)
         
         return new ApiResponse(res)
-            .success('Data ICD berhasil diperbarui')
+            .success('Data INA-CBG berhasil diperbarui')
             .data(result)
             .send();
     } catch (error) {
@@ -91,12 +69,12 @@ exports.updateMrconso = async (req, res) => {
     }
 }
 
-exports.deleteMrconso = async (req, res) => {
+exports.deleteInacbg = async (req, res) => {
     try {
-        await mrconsoService.deleteMrconso(req)
+        await inacbgService.deleteInacbg(req)
         
         return new ApiResponse(res)
-            .success('Data ICD berhasil dihapus')
+            .success('Data INA-CBG berhasil dihapus')
             .send();
     } catch (error) {
         handleError('error', {
