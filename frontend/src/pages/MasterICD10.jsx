@@ -34,7 +34,7 @@ export default function MasterICD10() {
         cui: ""
     });
 
-    const API_URL = "http://localhost:3000/api/v1";
+    const API_URL = "https://manufacturing-trance-samba-stats.trycloudflare.com/api/v1";
 
     const fetchData = async () => {
         setLoading(true);
