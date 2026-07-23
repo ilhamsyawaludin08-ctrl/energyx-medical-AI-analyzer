@@ -352,7 +352,7 @@ const getRecommendationV1 = async (inputData) => {
     if (!inputData) throw new Error('Input data tidak boleh kosong');
 
     // Validasi field wajib
-    const requiredFields = ['patient_id', 'encounter_number', 'unit', 'patient_name', 'subjective', 'objectif', 'assesment', 'creator', 'service_type'];
+    const requiredFields = ['patient_id', 'encounter_number', 'unit', 'patient_name', 'subjective', 'objective', 'assesment', 'creator', 'service_type'];
     const missingFields = requiredFields.filter(field => !inputData[field]);
     if (missingFields.length > 0) {
       throw new Error(`Field yang diperlukan tidak ada: ${missingFields.join(', ')}`);
@@ -388,7 +388,7 @@ const getRecommendationV1 = async (inputData) => {
       ${inputData.subjective}
 
       Pemeriksaan Fisik (Objective):
-      ${inputData.objectif}
+      ${inputData.objective}
 
       Assessment/Diagnosis:
       ${inputData.assesment}

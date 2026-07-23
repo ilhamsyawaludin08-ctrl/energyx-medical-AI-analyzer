@@ -64,7 +64,7 @@ const recommendationSchema = Joi.object({
     .required()
     .description('Subjective findings - patient complaints'),
     
-  objectif: Joi.string()
+  objective: Joi.string()
     .min(1)
     .max(1000)
     .required()

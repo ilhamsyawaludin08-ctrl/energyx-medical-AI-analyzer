@@ -67,7 +67,7 @@ export default function NewAnalysis() {
                 weight: formData.weight ? parseFloat(formData.weight) : undefined,
                 service_type: formData.service_type || "Rawat Jalan",
                 subjective: formData.subjective || "-",
-                objectif: formData.objective || "-",
+                objective: formData.objective || "-",
                 assesment: formData.assessment || "-",
                 creator: creatorName,
                 doctor_code: doctorCode,
