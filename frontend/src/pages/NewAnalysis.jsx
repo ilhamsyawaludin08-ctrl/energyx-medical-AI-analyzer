@@ -22,7 +22,8 @@ export default function NewAnalysis() {
         temperature: "",
         spo2: "",
         weight: "",
-        height: ""
+        height: "",
+        pain_scale: ""
     });
 
     const [loading, setLoading] = useState(false);
@@ -78,7 +79,8 @@ export default function NewAnalysis() {
                     S: formData.temperature || undefined,
                     SPO2: formData.spo2 || undefined,
                     BB: formData.weight || undefined,
-                    TB: formData.height || undefined
+                    TB: formData.height || undefined,
+                    pain_scale: formData.pain_scale || undefined
                 }
             };
 
@@ -435,6 +437,24 @@ export default function NewAnalysis() {
                                     value={formData.weight}
                                     onChange={handleChange}
                                     placeholder="60 Kg"
+                                    style={inputStyle}
+                                />
+                            </div>
+
+                            <div className="col-md-4 col-6">
+                                <label style={labelStyle}>
+                                    <i className="bi bi-emoji-expressionless me-1" style={{ color: "var(--sc-danger, #ef4444)", fontSize: "0.85rem" }}></i>
+                                    Skala Nyeri (1-10)
+                                </label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    max="10"
+                                    className="form-control"
+                                    name="pain_scale"
+                                    value={formData.pain_scale}
+                                    onChange={handleChange}
+                                    placeholder="1-10"
                                     style={inputStyle}
                                 />
                             </div>

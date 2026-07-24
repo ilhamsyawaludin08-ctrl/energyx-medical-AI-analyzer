@@ -9,7 +9,8 @@ const conditionSchema = Joi.object({
   BB: Joi.string().optional().description('Body weight in format: 65 kg'),
   TB: Joi.string().optional().description('Height in format: 170 cm'),
   S: Joi.string().optional().description('Temperature in format: 36.5°C'),
-  SPO2: Joi.string().optional().description('Oxygen saturation in format: 98%')
+  SPO2: Joi.string().optional().description('Oxygen saturation in format: 98%'),
+  pain_scale: Joi.number().integer().min(1).max(10).optional().description('Pain scale 1-10')
 }).optional();
 
 // Main validation schema for recommendation request

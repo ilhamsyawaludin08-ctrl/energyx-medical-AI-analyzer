@@ -367,7 +367,8 @@ const getRecommendationV1 = async (inputData) => {
       vitalSigns.S && `Suhu: ${vitalSigns.S}`,
       vitalSigns.SPO2 && `SpO2: ${vitalSigns.SPO2}`,
       vitalSigns.BB && `Berat Badan: ${vitalSigns.BB}`,
-      vitalSigns.TB && `Tinggi Badan: ${vitalSigns.TB}`
+      vitalSigns.TB && `Tinggi Badan: ${vitalSigns.TB}`,
+      vitalSigns.pain_scale && `Skala Nyeri (1-10): ${vitalSigns.pain_scale}`
     ].filter(Boolean).join('\n');
 
     const vitalSignsText = vitalSignsList ? `\nTanda Vital:\n${vitalSignsList}` : '';

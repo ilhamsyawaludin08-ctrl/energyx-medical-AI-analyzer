@@ -126,7 +126,9 @@ export default function Transactions() {
                                     </thead>
                                     <tbody>
                                         {transactions.map((tx, idx) => {
-                                            const profit = parseFloat(tx.profit_amount || 0);
+                                            const claimAmount = parseFloat(tx.primary_diagnosis?.claim || tx.coverage_amount || 0);
+                                            const costAmount = parseFloat(tx.cost_amount || 0);
+                                            const profit = claimAmount - costAmount;
                                             const isProfitable = profit >= 0;
                                             return (
                                                 <tr key={tx.id} className={`sc-stagger-${(idx % 5) + 1}`}>
@@ -147,8 +149,8 @@ export default function Transactions() {
                                                             <span className="text-muted small">-</span>
                                                         )}
                                                     </td>
-                                                    <td className="fw-medium text-dark">Rp {parseFloat(tx.coverage_amount || 0).toLocaleString('id-ID')}</td>
-                                                    <td className="fw-medium text-danger">Rp {parseFloat(tx.cost_amount || 0).toLocaleString('id-ID')}</td>
+                                                    <td className="fw-medium text-dark">Rp {claimAmount.toLocaleString('id-ID')}</td>
+                                                    <td className="fw-medium text-danger">Rp {costAmount.toLocaleString('id-ID')}</td>
                                                     <td className={isProfitable ? "text-success fw-bold" : "text-danger fw-bold"}>
                                                         <span className={isProfitable ? "sc-pill sc-pill-success" : "sc-pill sc-pill-danger"}>
                                                             {isProfitable ? "+" : ""}Rp {profit.toLocaleString('id-ID')}
@@ -291,7 +293,11 @@ export default function Transactions() {
                                     <div className="col-4">
                                         <div className="border rounded p-3 bg-light shadow-sm sc-hover-lift">
                                             <span className="text-secondary small d-block text-uppercase fw-bold mb-1" style={{ fontSize: "0.65rem", letterSpacing: "0.05em" }}>Prediksi Plafon</span>
-                                            <strong className="text-muted fs-6">Menunggu INA-CBG</strong>
+                                            {selectedTx.primary_diagnosis && selectedTx.primary_diagnosis.claim > 0 ? (
+                                                <strong className="text-success fs-5">Rp {parseFloat(selectedTx.primary_diagnosis.claim).toLocaleString('id-ID')}</strong>
+                                            ) : (
+                                                <strong className="text-muted fs-6">Menunggu INA-CBG</strong>
+                                            )}
                                         </div>
                                     </div>
                                     <div className="col-4">
@@ -301,9 +307,15 @@ export default function Transactions() {
                                         </div>
                                     </div>
                                     <div className="col-4">
-                                        <div className="border rounded p-3 bg-light shadow-sm sc-hover-lift">
+                                        <div className={`border rounded p-3 shadow-sm sc-hover-lift ${selectedTx.primary_diagnosis && selectedTx.primary_diagnosis.claim > 0 ? (parseFloat(selectedTx.primary_diagnosis.claim) - parseFloat(selectedTx.cost_amount || 0) >= 0 ? 'bg-success-subtle border-success' : 'bg-danger-subtle border-danger') : 'bg-light'}`}>
                                             <span className="text-secondary small d-block text-uppercase fw-bold mb-1" style={{ fontSize: "0.65rem", letterSpacing: "0.05em" }}>Profit/Loss</span>
-                                            <strong className="text-muted fs-6">Menunggu INA-CBG</strong>
+                                            {selectedTx.primary_diagnosis && selectedTx.primary_diagnosis.claim > 0 ? (
+                                                <strong className={`fs-5 ${parseFloat(selectedTx.primary_diagnosis.claim) - parseFloat(selectedTx.cost_amount || 0) >= 0 ? 'text-success' : 'text-danger'}`}>
+                                                    {parseFloat(selectedTx.primary_diagnosis.claim) - parseFloat(selectedTx.cost_amount || 0) >= 0 ? '+' : '-'} Rp {Math.abs(parseFloat(selectedTx.primary_diagnosis.claim) - parseFloat(selectedTx.cost_amount || 0)).toLocaleString('id-ID')}
+                                                </strong>
+                                            ) : (
+                                                <strong className="text-muted fs-6">Menunggu INA-CBG</strong>
+                                            )}
                                         </div>
                                     </div>
                                 </div>

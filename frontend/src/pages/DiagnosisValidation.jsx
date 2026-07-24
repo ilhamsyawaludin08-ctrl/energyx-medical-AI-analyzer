@@ -675,9 +675,9 @@ export default function DiagnosisValidation() {
                 <div className="col-lg-4 order-lg-2 mb-4">
                     
                     {/* AI Diagnosis suggestions */}
-                    <div className="card shadow-sm border-0 mb-4 sc-card-accent-info sc-hover-glow">
-                        <div className="card-header bg-white py-3">
-                            <div className="sc-section-header text-info">
+                    <div className="card shadow-sm border-0 mb-4 sc-card-accent-ai sc-hover-glow bg-ai-subtle">
+                        <div className="card-header bg-transparent border-bottom-0 py-3 pb-0">
+                            <div className="sc-section-header text-ai">
                                 <i className="bi bi-cpu"></i>
                                 Rekomendasi Diagnosis AI
                             </div>
@@ -685,19 +685,19 @@ export default function DiagnosisValidation() {
                         <div className="card-body p-4">
                             <h6 className="fw-bold text-secondary text-uppercase border-bottom pb-2 mb-3" style={{ fontSize: "0.75rem", letterSpacing: "0.05em" }}>Diagnosis Primer</h6>
                             {aiRecommendations?.diagnosis_primer?.map((diag, idx) => (
-                                <div key={idx} className="p-3 mb-4 bg-light rounded border sc-hover-lift" style={{ borderLeft: "4px solid var(--sc-primary) !important" }}>
+                                <div key={idx} className="p-3 mb-4 bg-light rounded border sc-hover-lift" style={{ borderLeft: "4px solid var(--sc-ai) !important" }}>
                                     <div className="d-flex justify-content-between align-items-center mb-2">
                                         <h6 className="fw-bold text-dark mb-0">
-                                            <span className="badge bg-white text-primary border me-2">{diag.kode || diag.code}</span>
+                                            <span className="badge bg-white text-ai border me-2">{diag.kode || diag.code}</span>
                                             {diag.nama || diag.title}
                                         </h6>
-                                        <span className="sc-pill sc-pill-primary">Conf: {diag.confidence}%</span>
+                                        <span className="sc-pill sc-pill-ai">Conf: {diag.confidence}%</span>
                                     </div>
                                     <div className="small text-muted p-2 bg-white rounded border mb-2">
                                         <strong>Alasan:</strong> {diag.alasan || diag.reason}
                                     </div>
                                     <small className="text-secondary d-flex align-items-center">
-                                        <i className="bi bi-tag-fill me-1 text-primary"></i> INACBG Group: <strong>{diag.inacbg || "A"}</strong>
+                                        <i className="bi bi-tag-fill me-1 text-ai"></i> INACBG Group: <strong>{diag.inacbg || "A"}</strong>
                                     </small>
                                 </div>
                             ))}
@@ -707,13 +707,13 @@ export default function DiagnosisValidation() {
                                 <p className="text-muted small">Tidak ada saran diagnosis sekunder.</p>
                             ) : (
                                 aiRecommendations?.diagnosis_sekunder?.map((diag, idx) => (
-                                    <div key={idx} className="p-3 mb-3 bg-light rounded border sc-hover-lift" style={{ borderLeft: "4px solid var(--sc-info) !important" }}>
+                                    <div key={idx} className="p-3 mb-3 bg-light rounded border sc-hover-lift" style={{ borderLeft: "4px solid var(--sc-ai) !important" }}>
                                         <div className="d-flex justify-content-between align-items-center mb-2">
                                             <div className="fw-semibold text-dark">
-                                                <span className="badge bg-white text-info border me-2">{diag.kode || diag.code}</span>
+                                                <span className="badge bg-white text-ai border me-2">{diag.kode || diag.code}</span>
                                                 {diag.nama || diag.title}
                                             </div>
-                                            <span className="sc-pill sc-pill-info">Conf: {diag.confidence}%</span>
+                                            <span className="sc-pill sc-pill-ai">Conf: {diag.confidence}%</span>
                                         </div>
                                         <div className="small text-muted" style={{ fontSize: "0.8rem" }}>
                                             <strong>Alasan:</strong> {diag.alasan || diag.reason}
@@ -725,9 +725,9 @@ export default function DiagnosisValidation() {
                     </div>
 
                     {/* AI Medical Treatment suggestions */}
-                    <div className="card shadow-sm border-0 mb-4 sc-card-accent-info sc-hover-glow">
-                        <div className="card-header bg-white py-3">
-                            <div className="sc-section-header text-info">
+                    <div className="card shadow-sm border-0 mb-4 sc-card-accent-ai sc-hover-glow bg-ai-subtle">
+                        <div className="card-header bg-transparent border-bottom-0 py-3 pb-0">
+                            <div className="sc-section-header text-ai">
                                 <i className="bi bi-activity"></i>
                                 Rekomendasi Tindakan (ICD-9-CM)
                             </div>
@@ -810,7 +810,7 @@ export default function DiagnosisValidation() {
                                                     <strong className="text-dark">{diag.disease_name}</strong>
                                                     <div className="small text-muted mt-1">{diag.doctor_diagnosis}</div>
                                                 </div>
-                                                {diag.claim > 0 && <div className="text-success fw-bold mb-1 fs-6">Rp {parseFloat(diag.claim).toLocaleString('id-ID')}</div>}
+                                                {searchTargetType === 'primary' && diag.claim > 0 && <div className="text-success fw-bold mb-1 fs-6">Rp {parseFloat(diag.claim).toLocaleString('id-ID')}</div>}
                                             </li>
                                         ))}
                                     </ul>
@@ -1040,7 +1040,11 @@ export default function DiagnosisValidation() {
                             <div className="p-3 bg-light rounded border mb-3">
                                 <div className="d-flex justify-content-between align-items-center mb-2">
                                     <span className="text-secondary fw-medium">Plafon Pertanggungan BPJS (Claim Coverage):</span>
-                                    <span className="fw-bold text-dark fs-5 text-muted">Menunggu INA-CBG</span>
+                                    {selectedPrimaryDiagnosis && selectedPrimaryDiagnosis.claim > 0 ? (
+                                        <span className="fw-bold text-success fs-5">Rp {parseFloat(selectedPrimaryDiagnosis.claim).toLocaleString('id-ID')}</span>
+                                    ) : (
+                                        <span className="fw-bold text-dark fs-5 text-muted">Menunggu Diagnosis Primer</span>
+                                    )}
                                 </div>
                                 <div className="d-flex justify-content-between align-items-center">
                                     <span className="text-secondary fw-medium">Estimasi Biaya Rumah Sakit (Hospital Cost):</span>
@@ -1048,18 +1052,31 @@ export default function DiagnosisValidation() {
                                 </div>
                             </div>
                             
-                            <div className="d-flex justify-content-between align-items-center p-3 rounded bg-light border">
+                            <div className={`d-flex justify-content-between align-items-center p-3 rounded border ${selectedPrimaryDiagnosis && selectedPrimaryDiagnosis.claim > 0 ? (parseFloat(selectedPrimaryDiagnosis.claim) - financials.totalCost >= 0 ? 'bg-success-subtle border-success' : 'bg-danger-subtle border-danger') : 'bg-light'}`}>
                                 <span className="fw-bold text-dark fs-5">Estimasi Net Profit/Loss:</span>
-                                <span className="fw-bold fs-5 text-muted">
-                                    Menunggu INA-CBG
-                                </span>
+                                {selectedPrimaryDiagnosis && selectedPrimaryDiagnosis.claim > 0 ? (
+                                    <span className={`fw-bold fs-5 ${parseFloat(selectedPrimaryDiagnosis.claim) - financials.totalCost >= 0 ? 'text-success' : 'text-danger'}`}>
+                                        {parseFloat(selectedPrimaryDiagnosis.claim) - financials.totalCost >= 0 ? '+' : '-'} Rp {Math.abs(parseFloat(selectedPrimaryDiagnosis.claim) - financials.totalCost).toLocaleString('id-ID')}
+                                    </span>
+                                ) : (
+                                    <span className="fw-bold fs-5 text-muted">
+                                        Menunggu Diagnosis
+                                    </span>
+                                )}
                             </div>
 
                             <div className="mt-3">
-                                <div className="alert alert-info py-2 small mb-0 d-flex align-items-center">
-                                    <i className="bi bi-info-circle-fill fs-5 me-2"></i>
-                                    <span><strong>Proyeksi belum tersedia.</strong> Profit/Loss baru dapat dihitung setelah proses grouping INA-CBG selesai untuk mendapatkan tarif pasti. Biaya Rumah Sakit di atas adalah murni total dari tindakan medis yang Anda pilih.</span>
-                                </div>
+                                {selectedPrimaryDiagnosis && selectedPrimaryDiagnosis.claim > 0 ? (
+                                    <div className="alert alert-success py-2 small mb-0 d-flex align-items-center">
+                                        <i className="bi bi-check-circle-fill fs-5 me-2"></i>
+                                        <span><strong>Proyeksi Tersedia.</strong> Plafon di atas adalah estimasi plafon klaim BPJS untuk diagnosis primer yang Anda pilih. Nilai akhir bergantung pada grouping INA-CBG final.</span>
+                                    </div>
+                                ) : (
+                                    <div className="alert alert-info py-2 small mb-0 d-flex align-items-center">
+                                        <i className="bi bi-info-circle-fill fs-5 me-2"></i>
+                                        <span><strong>Proyeksi belum tersedia.</strong> Profit/Loss baru dapat dihitung setelah diagnosis primer dipilih. Biaya Rumah Sakit di atas adalah murni total dari tindakan medis yang Anda pilih.</span>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>

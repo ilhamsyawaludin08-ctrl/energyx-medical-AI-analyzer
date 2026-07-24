@@ -14,7 +14,8 @@ const transformTransaction = (transaction) => {
           id: diagnosis.id,
           disease_name: diagnosis.disease_name,
           icd10_code: diagnosis.icd10_code,
-          doctor_diagnosis: diagnosis.doctor_diagnosis
+          doctor_diagnosis: diagnosis.doctor_diagnosis,
+          claim: diagnosis.claim
         };
         
         if (junction && junction.is_primary) {

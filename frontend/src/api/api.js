@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-    baseURL: "http://localhost:3000/api",
+  baseURL: "http://localhost:3000/api",
 });
 
 // Helper to generate SHA-256 HMAC signature in browser using Web Crypto API

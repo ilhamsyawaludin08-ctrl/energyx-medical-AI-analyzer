@@ -3,11 +3,10 @@ const { Mrconso, MasterDiagnosis } = require("../models")
 
 const findAllByDiagnosis = async (diagnosis) => {
     // 1. Prioritize EXACT match on CODE first
-    const exactMatches = await Mrconso.findAll({
+    const exactMatches = await MasterDiagnosis.findAll({
         limit: 10,
         where: { 
-            code: diagnosis,
-            sab: { [Op.like]: '%ICD10%' }
+            icd10_code: diagnosis
         }
     });
 
@@ -16,17 +15,16 @@ const findAllByDiagnosis = async (diagnosis) => {
 
     // 2. Fill the rest with wildcard matches
     if (remainingLimit > 0) {
-        const exactCodes = exactMatches.map(e => e.code);
+        const exactCodes = exactMatches.map(e => e.icd10_code);
         
-        wildcardMatches = await Mrconso.findAll({
+        wildcardMatches = await MasterDiagnosis.findAll({
             limit: remainingLimit,
             where: {
-                ...(exactCodes.length > 0 && { code: { [Op.notIn]: exactCodes } }),
-                sab: { [Op.like]: '%ICD10%' },
+                ...(exactCodes.length > 0 && { icd10_code: { [Op.notIn]: exactCodes } }),
                 [Op.or]: [
-                    { code: { [Op.like]: `%${diagnosis}%` } },
-                    { str: { [Op.like]: `%${diagnosis}%` } },
-                    { str_indo: { [Op.like]: `%${diagnosis}%` } }
+                    { icd10_code: { [Op.like]: `%${diagnosis}%` } },
+                    { disease_name: { [Op.like]: `%${diagnosis}%` } },
+                    { doctor_diagnosis: { [Op.like]: `%${diagnosis}%` } }
                 ]
             }
         });
@@ -34,13 +32,13 @@ const findAllByDiagnosis = async (diagnosis) => {
 
     const allMatches = [...exactMatches, ...wildcardMatches];
     
-    // Map Mrconso structure to what frontend expects for Autocomplete
+    // Map structure to what frontend expects for Autocomplete
     return allMatches.map(m => ({
-        id: m.code,
-        icd10_code: m.code,
-        disease_name: m.str_indo || m.str,
-        doctor_diagnosis: m.str,
-        claim: 0
+        id: m.icd10_code,
+        icd10_code: m.icd10_code,
+        disease_name: m.disease_name,
+        doctor_diagnosis: m.doctor_diagnosis,
+        claim: m.claim
     }));
 };
 

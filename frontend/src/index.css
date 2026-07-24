@@ -37,6 +37,11 @@
   --sc-info-light: #cffafe;
   --sc-info-subtle: #ecfeff;
 
+  --sc-ai: #8B5CF6; /* Violet/Purple for AI */
+  --sc-ai-hover: #7C3AED;
+  --sc-ai-light: #EDE9FE;
+  --sc-ai-subtle: #F5F3FF;
+
   /* Neutrals */
   --sc-bg: #F8FAFC;
   --sc-bg-card: #FFFFFF;
@@ -871,6 +876,22 @@ textarea.form-control {
   border-left: 4px solid var(--sc-info) !important;
 }
 
+.sc-card-accent-ai {
+  border-left: 4px solid var(--sc-ai) !important;
+}
+
+.text-ai {
+  color: var(--sc-ai) !important;
+}
+
+.bg-ai {
+  background-color: var(--sc-ai) !important;
+}
+
+.bg-ai-subtle {
+  background-color: var(--sc-ai-subtle) !important;
+}
+
 
 /* ============================================================
    CUSTOM — Glassmorphism Subtle
@@ -919,6 +940,11 @@ textarea.form-control {
 .sc-pill-info {
   background: var(--sc-info-light);
   color: #155e75;
+}
+
+.sc-pill-ai {
+  background: var(--sc-ai-light);
+  color: #5b21b6; /* deep violet for contrast */
 }
 
 
