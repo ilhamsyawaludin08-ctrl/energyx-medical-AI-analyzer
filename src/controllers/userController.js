@@ -71,7 +71,7 @@ exports.login = async (req, res) => {
         console.log("JWT_SECRET:", JWT_SECRET);
         console.log("JWT_EXPIRES_IN:", JWT_EXPIRES_IN);
         const token = jwt.sign(
-            { id: user.id, username: user.username, role: user.department?.name },
+            { id: user.id, username: user.username, role: user.department?.name || 'User' },
             JWT_SECRET,
             { expiresIn: JWT_EXPIRES_IN }
         );
@@ -83,16 +83,16 @@ exports.login = async (req, res) => {
                 name: user.name,
                 username: user.username,
                 email: user.email,
-                department: {
+                department: user.department ? {
                     id: user.department.id,
                     name: user.department.name,
-                },
-                hospital: {
+                } : null,
+                hospital: user.hospital ? {
                     id: user.hospital.id,
                     name: user.hospital.name,
                     address: user.hospital.address,
                     hospital_code: user.hospital.hospital_code,
-                },
+                } : null,
             },
         })
     } catch (error) {
